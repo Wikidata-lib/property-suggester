@@ -48,6 +48,9 @@ class SimplePHPSuggesterTest extends MediaWikiTestCase {
 
 	public function setUp() {
 		parent::setUp();
+
+		$this->tablesUsed[] = 'wbs_propertypairs';
+
 		$this->suggester = new SimplePHPSuggester( $this->db );
 
 	}
