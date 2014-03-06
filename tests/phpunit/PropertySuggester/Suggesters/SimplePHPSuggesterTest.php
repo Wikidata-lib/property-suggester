@@ -66,7 +66,7 @@ class SimplePHPSuggesterTest extends MediaWikiTestCase {
 		$res = $this->db->select( 'wbs_propertypairs', array( 'pid1' ) );
 		$res = $this->db->delete( 'user', "*" );
 		$res = $this->db->delete( 'wb_terms', "*" );
-		$res = $this->db->delete( 'wbs_propertypairs', "*" );
+		#$res = $this->db->delete( 'wbs_propertypairs', "*" );
 		$this->assertTrue(true);
 	}
 
