@@ -1,5 +1,5 @@
 
-CREATE TABLE IF NOT EXISTS /*_*/wbs_propertyPairs(
+CREATE TABLE IF NOT EXISTS /*_*/wbs_propertypairs(
   pid1              INT unsigned    NOT NULL,
   pid2              INT unsigned    NOT NULL,
   count             INT unsigned    NOT NULL,
