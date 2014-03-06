@@ -14,7 +14,7 @@ use Wikibase\DataModel\Entity\PropertyId;
  * Needs the wbs_propertypairs table filled with pair probabilities.
  */
 class SimplePHPSuggester implements SuggesterEngine {
-	private $deprecatedPropertyIds = [ 107 ];
+	private $deprecatedPropertyIds = array( 107 );
 
 	/**
 	 * @param DatabaseBase $dbr
