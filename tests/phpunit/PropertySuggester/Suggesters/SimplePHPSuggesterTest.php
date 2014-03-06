@@ -47,9 +47,5 @@ class SimplePHPSuggesterTest extends MediaWikiTestCase {
 		$res = $this->db->select( 'wbs_propertypairs', array( 'pid1' ) );
 		$this->assertTrue(true);
 	}
-
-	public function tearDown() {
-		parent::tearDown();
-	}
 }
 
