@@ -64,15 +64,20 @@ class SimplePHPSuggesterTest extends MediaWikiTestCase {
 		$res = $this->db->select( 'user', array( 'user_id' ) );
 		$res = $this->db->select( 'wb_terms', array( 'term_row_id' ) );
 		$res = $this->db->select( 'wbs_propertypairs', array( 'pid1' ) );
+		$res = $this->db->delete( 'user', "*" );
+		$res = $this->db->delete( 'wb_terms', "*" );
+		$res = $this->db->delete( 'wbs_propertypairs', "*" );
 		$this->assertTrue(true);
 	}
 
+	/*
 	public function testDbWriteExists() {
 		$res = $this->db->delete( 'user', "*" );
 		$res = $this->db->delete( 'wb_terms', "*" );
 		$res = $this->db->delete( 'wbs_propertypairs', "*" );
 		$this->assertTrue(true);
 	}
+	*/
 
 /*	public function testSuggestByPropertyIds() {
 		$ids = array( PropertyId::newFromNumber( 1 ) );
