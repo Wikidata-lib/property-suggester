@@ -42,8 +42,10 @@ class SimplePHPSuggesterTest extends MediaWikiTestCase {
 		$rows[] = $this->row( 2, 4, 200, 0.2 );
 		$rows[] = $this->row( 3, 1, 100, 0.5 );
 
+        $dbw = wfGetDB( DB_MASTER );
+
 //		$this->db->delete( 'wbs_propertypairs', "*" );
-		$this->db->insert( 'wbs_propertypairs', $rows );
+		$dbw->insert( 'wbs_propertypairs', $rows );
 	}
 
 	public function setUp() {
