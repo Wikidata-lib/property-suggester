@@ -1,0 +1,13 @@
+#ruby=ruby-2.0.0-p247
+#ruby-gemset=Wikibase-selenium_cuc
+
+source 'https://rubygems.org'
+
+gem 'activesupport'
+gem 'mediawiki-selenium'
+#gem 'selenium/client'
+gem 'require_all'
+gem 'rake'
+gem 'rspec'
+gem 'page-object'
+gem 'rspec-extra-formatters'
