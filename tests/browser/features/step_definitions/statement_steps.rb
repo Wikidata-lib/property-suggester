@@ -41,6 +41,14 @@ When /^I enter (.+) in the property input field$/ do |value|
   end
 end
 
+When /^I put a letter in the property input field$/  do
+  on(ItemPage) do |page|
+    page.entity_selector_input_element.clear
+    page.entity_selector_input = generate_random_string(1)
+    page.ajax_wait
+  end
+end
+
 When /^I enter (.+) as string statement value$/ do |value|
   on(ItemPage) do |page|
     page.statement_value_input_field = value

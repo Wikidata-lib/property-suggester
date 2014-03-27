@@ -8,7 +8,7 @@ Feature: Checking propertysuggester
 	@ui_only @repo_login
 	Scenario: suggestions on input in new object
 	When I click the statement add button
-		And I enter b in the property input field
+		And I put a letter in the property input field
 		And Entity selector input element should be there
 		And Entity selector list should be there
 
@@ -23,7 +23,7 @@ Feature: Checking propertysuggester
 		And Statement add button should be there
 
 		And I click the right statement add button
-		And I enter N in the property input field
+		And I put a letter in the property input field
 		And Entity selector input element should be there
 		And Entity selector list should be there
 
