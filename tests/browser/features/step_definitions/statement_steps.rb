@@ -10,6 +10,10 @@ When /^I click the statement add button$/ do
   on(ItemPage).add_statement
 end
 
+When /^I click the right statement add button$/ do
+  on(ItemPage).add_right_statement[2]
+end
+
 When /^I click the statement cancel button$/ do
   on(ItemPage).cancel_statement
 end
