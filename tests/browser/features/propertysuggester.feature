@@ -19,7 +19,8 @@ Feature: Checking propertysuggester
 		And I click the right statement add button
 		#And Entity selector input element should be there
 		#And Statement value input element should be there
-		And I enter named after in the property input field
-		And I enter Hanna as string statement value
-		And Statement save button should be there
-		And I click the statement save button
+		And I enter N in the property input field
+		And Entity selector input element should be there
+		#And I enter Hanna as string statement value
+		#And Statement save button should be there
+		#And I click the statement save button

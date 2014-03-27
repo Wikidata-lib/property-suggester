@@ -14,7 +14,7 @@ module StatementPage
 
   # statements UI elements
   a(:add_statement, css: "div.wb-claimlistview a.wb-addtoolbar-addbutton:not(.wikibase-toolbarbutton-disabled)")
-   a(:add_right_statement, css: "div.wb-claimlistview a.wb-addtoolbar-addbutton:not(.wikibase-toolbarbutton-disabled):last-of-type")
+   a(:add_right_statement, xpath: " (//div[contains(@class, 'wb-claimlistview')]//a[contains(@class,'wb-addtoolbar-addbutton')])[last()]")# a.:not(.wikibase-toolbarbutton-disabled):last-child")
   a(:add_statement_disabled, css: "div.wb-claimlistview a.wb-addtoolbar-addbutton.wikibase-toolbarbutton-disabled")
   a(:save_statement, css: ".wb-claimlistview div.listview-item a.wikibase-toolbareditgroup-savebutton:not(.wikibase-toolbarbutton-disabled)")
   a(:save_statement_disabled, css: ".wb-claimlistview div.listview-item a.wikibase-toolbareditgroup-savebutton.wikibase-toolbarbutton-disabled")
