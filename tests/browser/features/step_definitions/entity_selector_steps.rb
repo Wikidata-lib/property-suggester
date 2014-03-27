@@ -17,3 +17,10 @@ end
 Then /^Entity selector input element should not be there$/ do
   on(ItemPage).entity_selector_input?.should be_false
 end
+
+Then /^Entity selector list should be there$/ do
+	on(ItemPage) do |page|
+	page.wait_for_entity_selector_list
+	page.entity_selector_list?.should be_true
+	end
+end
