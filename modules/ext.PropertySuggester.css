@@ -1,0 +1,24 @@
+
+.button {
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    display: inline-block;
+    height: 30px;
+    width: 30px;
+}
+
+.smile_button.selected {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/smile_green.png");
+}
+
+.smile_button {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/smile.png");
+}
+
+.sad_button.selected {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/sad_green.png");
+}
+
+.sad_button {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/sad.png");
+}
