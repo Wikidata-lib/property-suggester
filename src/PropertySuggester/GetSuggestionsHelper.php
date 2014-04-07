@@ -4,6 +4,7 @@ namespace PropertySuggester;
 
 use PropertySuggester\Suggesters\SimplePHPSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
+use PropertySuggester\Suggesters\Suggestion;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\EntityLookup;
@@ -39,7 +40,7 @@ class GetSuggestionsHelper {
 	 *
 	 * @param string $item
 	 * @param string $propertyList
-	 * @return array
+	 * @return Suggestion[]
 	 */
 	public function generateSuggestions( $item, $propertyList ) {
 		if ( $item !== null ) {
