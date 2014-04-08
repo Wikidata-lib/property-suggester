@@ -1,36 +1,28 @@
 
 .button {
-    background-repeat: no-repeat;
-    background-size: 100% auto;
-    display: inline-block;
-    height: 30px;
-    width: 30px;
-}
-
-.smile_button.selected {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/smile_green.png");
+    font-size: 200%;
+    color: grey;
+    cursor: pointer;
+    margin: 3px;
+    vertical-align:middle;
+    padding-left: 50px;
 }
 
 .smile_button {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/smile.png");
 }
 
-.sad_button.selected {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/sad_green.png");
+.smile_button.selected {
+    color: green;
 }
 
 .sad_button {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/sad.png");
 }
-.question_button {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/question.png");
+
+.sad_button.selected {
+    color: red;
 }
 
 .question_button.selected {
-    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/question_green.png");
+    color: lightblue;
 }
 
-.fa {
-    font-size: 200%;
-    color: red;
-}

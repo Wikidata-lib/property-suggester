@@ -86,12 +86,8 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 				$out->addElement( "span", null, $suggestion_prop ." ".$plabel );
 
 				$out->addElement( 'i', array( 'class'=>'fa fa-smile-o button smile_button' ) );
-				//$out->addElement( "span", array( 'class'=> 'button smile_button', 'href' => '#') );
-				//$out->addElement( "span", array( 'class'=> 'button sad_button', 'href' => '#' ) );
-				$out->addElement( 'i', array( 'class'=>'fa fa-frown-o button smile_button' ) );
-				$out->addElement( 'i', array( 'class'=>'fa question button question_button' ) );
-
-				//$out->addElement("span", array ( 'class'=> 'button question_button', 'href' => '#' ) );
+				$out->addElement( 'i', array( 'class'=>'fa fa-frown-o button sad_button' ) );
+				$out->addElement( 'i', array( 'class'=>'fa fa-question button question_button selected' ) );
 				$out->addHTML("</div>");
 			}
 			//$out->addHTML( "<form action='$url' method='get'>" );
