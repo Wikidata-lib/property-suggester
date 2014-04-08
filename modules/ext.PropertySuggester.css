@@ -22,3 +22,15 @@
 .sad_button {
     background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/sad.png");
 }
+.question_button {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/question.png");
+}
+
+.question_button.selected {
+    background-image: url("/devrepo/extensions/PropertySuggester/src/PropertySuggester/question_green.png");
+}
+
+.fa {
+    font-size: 200%;
+    color: red;
+}

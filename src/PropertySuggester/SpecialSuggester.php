@@ -40,6 +40,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 	public function execute( $par ) {
 		$out = $this->getContext()->getOutput();
 		$this->setHeaders();
+		$out->addStyle('//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css');
 		$out->addModules( 'ext.PropertySuggester' );
 
 		$out->addWikiMsg( 'propertysuggester-intro' );
@@ -54,7 +55,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 		$out->addHTML( "<input value='Dummy' id='add-property-btn2' type='submit'  >" );
 		$out->addHTML( "</form>" );
 		$out->addHTML( "<br/>" );
-
+		$out->addElement( 'i', array( 'class'=>'fa fa-meh-o' ) );
 		$entity = $out->getRequest()->getText( "entity-chooser" );
 		if ( $entity ) {
 			$itemId = $this->parseItemId( $entity );
@@ -62,12 +63,15 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 			$label = $item->getLabel( $this->language );
 
 			$out->addElement( "h2", null, "Choosen Item: ".$label );
-
+			$out->addHTML("<div class='entry' data-entry-id='$itemId'>");
+			$out->addHTML("</div>");
 			$snaks = $item->getAllSnaks();
 				foreach ( $snaks as $snak) {
 					$pid = $snak->getPropertyId();
 					$plabel = $this->loadEntity($pid)->getEntity()->getLabel( $this->language );
+					$out->addHTML("<div class='properties_entry' data-property='$pid' data-label ='$plabel'>");
 					$out->addElement( "p", null, $pid." ".$plabel );
+					$out->addHTML("</div>");
 				}
 
 			$suggestions = $this->suggester->suggestByItem( $item );
@@ -77,11 +81,17 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 				$suggestion_prop = $suggestions[$i]->getPropertyId();
 				$plabel = $this->loadEntity($suggestion_prop)->getEntity()->getLabel( $this->language );
 				$pid = $suggestion_prop->getSerialization();
-				$out->addHTML("<div class='suggestions_entry' data-property='$pid'>");
+				$out->addHTML("<div class='suggestions_entry' data-property='$pid' data-label ='$plabel'>");
 
 				$out->addElement( "span", null, $suggestion_prop ." ".$plabel );
-				$out->addElement( "span", array( 'class'=> 'button smile_button', 'href' => '#') );
-				$out->addElement( "span", array( 'class'=> 'button sad_button', 'href' => '#' ) );
+
+				$out->addElement( 'i', array( 'class'=>'fa fa-smile-o button smile_button' ) );
+				//$out->addElement( "span", array( 'class'=> 'button smile_button', 'href' => '#') );
+				//$out->addElement( "span", array( 'class'=> 'button sad_button', 'href' => '#' ) );
+				$out->addElement( 'i', array( 'class'=>'fa fa-frown-o button smile_button' ) );
+				$out->addElement( 'i', array( 'class'=>'fa question button question_button' ) );
+
+				//$out->addElement("span", array ( 'class'=> 'button question_button', 'href' => '#' ) );
 				$out->addHTML("</div>");
 			}
 			//$out->addHTML( "<form action='$url' method='get'>" );
