@@ -5,7 +5,14 @@
     cursor: pointer;
     margin: 3px;
     vertical-align:middle;
-    padding-left: 50px;
+}
+
+.suggestion_evaluation {
+    width: 300px;
+}
+
+.buttons {
+    
 }
 
 .smile_button {

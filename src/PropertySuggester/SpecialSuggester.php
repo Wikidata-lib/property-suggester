@@ -77,6 +77,8 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 			$suggestions = $this->suggester->suggestByItem( $item );
 
 			$out->addElement( "h2", null, "Suggestions" );
+			$out->addHTML( "<div class='suggestion_evaluation'>" );
+
 			for ($i=0; $i<7; $i++) {
 				$suggestion_prop = $suggestions[$i]->getPropertyId();
 				$plabel = $this->loadEntity($suggestion_prop)->getEntity()->getLabel( $this->language );
@@ -85,11 +87,16 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 
 				$out->addElement( "span", null, $suggestion_prop ." ".$plabel );
 
+				$out->addHTML( "<span class='buttons'>" );
 				$out->addElement( 'i', array( 'class'=>'fa fa-smile-o button smile_button' ) );
+				$out->addElement( 'i', array( 'class'=>'fa fa-meh-o button question_button selected' ) );
 				$out->addElement( 'i', array( 'class'=>'fa fa-frown-o button sad_button' ) );
-				$out->addElement( 'i', array( 'class'=>'fa fa-question button question_button selected' ) );
+				$out->addHTML( "</span>" );
+
 				$out->addHTML("</div>");
 			}
+			$out->addHTML( '</div>' );
+
 			//$out->addHTML( "<form action='$url' method='get'>" );
 			$out->addHTML( "<input value='Submit' id='submit-button' name='submit-button' type='button'  >" );
 			//$out->addHTML( "</form>" );
