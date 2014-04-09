@@ -3,7 +3,7 @@
 namespace PropertySuggester;
 
 use Html;
-use PropertySuggester\Suggesters\SimplePHPSuggester;
+use PropertySuggester\Suggesters\SimpleSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
 use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
 use Wikibase\Repo\WikibaseRepo;
@@ -29,8 +29,10 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 		parent::__construct( 'PropertySuggester', '' );
 		$this->language = $this->getContext()->getLanguage()->getCode();
 
-		$dbr = wfGetDB( DB_SLAVE );
-		$this->suggester = new SimplePHPSuggester( $dbr );
+		$lb = wfGetLB( DB_SLAVE );
+		$this->suggester = new SimpleSuggester( $lb );
+		global $wgPropertySuggesterDeprecatedIds;
+		$this->suggester->setDeprecatedPropertyIds($wgPropertySuggesterDeprecatedIds);
 	}
 
 	/**
@@ -75,13 +77,13 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 			}
 			$out->addHTML( Html::closeElement( 'ul') );
 
-			$suggestions = $this->suggester->suggestByItem( $item );
+			$suggestions = $this->suggester->suggestByItem( $item, 7 );
 
 			$out->addElement( 'h2', null, 'Suggestions' );
 			$out->addHTML( "<ul class='suggestion_evaluation'>" );
 
-			for ( $i = 0; $i < 7; $i++ ) {
-				$suggestion_prop = $suggestions[ $i ]->getPropertyId();
+			foreach ( $suggestions as $suggestion ) {
+				$suggestion_prop = $suggestion->getPropertyId();
 				$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
 				$pid = $suggestion_prop->getSerialization();
 				$out->addHTML( "<li data-property='$pid' data-label ='$plabel'>" );

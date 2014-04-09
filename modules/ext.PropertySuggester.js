@@ -46,8 +46,8 @@ $(document).ready(function () {
 function submitJson(entry_id,properties,ratings) {
     var evaluations = {
         entity: entry_id,
-        properties: ratings,
-        suggestions: properties
+        properties: properties,
+        suggestions: ratings
     };
 
     console.log(evaluations);

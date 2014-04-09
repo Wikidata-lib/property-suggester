@@ -58,15 +58,13 @@ $wgResourceModules['ext.PropertySuggester.EntitySelector'] = array(
 		'remoteExtPath' => 'PropertySuggester',
 );
 
-$wgResourceModules['ext.PropertySuggester.EntitySelector'] = array(
-		'scripts'		=> array( 'modules/ext.PropertySuggester.EntitySelector.js' ),
-		'styles'		=> array(),
-		'messages'		=> array(),
-		'dependencies'	=> array( 'jquery.wikibase.entityselector' ),
-		'localBasePath'	=> __DIR__,
-		'remoteExtPath'	=> 'PropertySuggester',
+$wgResourceModules['ext.PropertySuggester'] = array(
+	'scripts'		=> array( 'modules/ext.PropertySuggester.js' ),
+	'styles'		=> array( 'modules/ext.PropertySuggester.css' ),
+	'dependencies'	=> array( 'ext.PropertySuggester.EntitySelector' ),
+	'localBasePath'	=> __DIR__,
+	'remoteExtPath'	=> 'PropertySuggester',
 );
-
 
 global $wgPropertySuggesterDeprecatedIds;
 $wgPropertySuggesterDeprecatedIds = array(
