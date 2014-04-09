@@ -11,8 +11,16 @@
     width: 300px;
 }
 
-.buttons {
-    
+.suggestion_evaluation .buttons {
+    float: right;
+}
+
+.suggestion_evaluation li {
+    clear: both;
+    height: 35px;
+}
+.suggestion_evaluation li span {
+    vertical-align: middle;
 }
 
 .smile_button {
@@ -30,6 +38,6 @@
 }
 
 .question_button.selected {
-    color: lightblue;
+    color: orange;
 }
 

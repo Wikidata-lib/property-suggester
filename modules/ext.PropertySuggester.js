@@ -1,99 +1,58 @@
-
-$( document ).ready(function (){
-    var entityChooser = $( '#entity-chooser' );
-	entityChooser.entityselector({
-		url: mw.util.wikiScript( 'api' ),
-		selectOnAutocomplete: true, 
-		type: 'item'
-	});
-
-
- /*   entityChooser.keyup(function (e) {
-		if (e.keyCode === 13) {
-			//getPropertiestoEntity()
-		}
-	});
-	*/
-
-    $(".button").on("click", function(event) {
-        $this = $(this);
-        $(this).siblings(".button").removeClass("selected")
-        if ($this.hasClass("selected")) {
-            $this.removeClass("selected");
-
-        } else {
-            $this.addClass("selected");
-        }
-        property_id = $this.parent("div").data("property");
-
+$(document).ready(function () {
+    var entityChooser = $('#entity-chooser');
+    entityChooser.entityselector({
+        url: mw.util.wikiScript('api'),
+        selectOnAutocomplete: true,
+        type: 'item'
     });
 
-    $('#submit-button').on("click",function(event){
-        $selected_good = $(".smile_button.selected");
-        var positive = {};
+    $(".button").on("click", function () {
+        var $this = $(this);
+        $this.siblings(".button").removeClass("selected");
+        $this.addClass("selected");
+    });
 
-       $selected_good.each(function () {
-           id = $(this).parent("div").data("property");
-           label = $(this).parent("div").data('label');
-           positive[id]=label;
-       });
+    $('#submit-button').on("click", function () {
+        var $selected = $(".suggestion_evaluation .selected");
+        var ratings = [];
 
-        $selected_bad = $(".sad_button.selected");
-
-        var negative={};
-        $selected_bad.each(function () {
-            id = $(this).parent("div").data("property");
-            label = $(this).parent("div").data('label');
-            negative[id]=label;
+        $selected.each(function () {
+            var $this = $(this);
+            var id = $this.parents("li").data("property");
+            var label = $this.parents("li").data('label');
+            var rating = $this.data('rating');
+            ratings.push( {'id': id, 'label':label, 'rating': rating } );
         });
-        question = {};
-        $selected_question = $(".question_button.selected");
-        $selected_question.each(function() {
-            id = $(this).parent("div").data("property");
-            label = $(this).parent("div").data('label');
-            question[id]=label;
-        })
 
-        var properties = {}
-        $props = $(".properties_entry");
+        console.log(ratings);
+
+        var properties = [];
+        $props = $(".property-entries li");
         $props.each(function () {
-            id = $(this).data("property");
-            label = $(this).data('label');
-            properties[id] =label;
-        })
+            var $this = $(this);
+            var id = $this.data("property");
+            var label = $this.data('label');
+            properties.push({'id': id,'label':label})
+        });
+        console.log(properties);
+        var  entry_id  = $(".entry").data("entry-id");
+        submitJson(  entry_id,properties,ratings);
 
-        entry_id = $(".entry").data("entry-id");
-        makeJSON(positive,negative,properties,entry_id,question);
 
-        function makeJSON(positive,negative,properties,entry_id,question){
-
-            var evaluations = {
-                entity: entry_id,
-                properties:[],
-                suggestions: []
-            }
-            for (var x in positive){
-                //console.log(x);
-                evaluations.suggestions.push({id:x , label: positive[x],rating: "1"});
-            }
-            for (var y in negative){
-                //console.log(x);
-                evaluations.suggestions.push({id:y , label: negative[y],rating: "-1"});
-            }
-            for (var n in question){
-                evaluations.suggestions.push({id:n , label: question[n],rating: "0"});
-            }
-            for (var z in properties){
-                evaluations.properties.push({id:z , label: properties[z]});
-            }
-            console.log(evaluations);
-            var property ={id: "",label:""};
-            var suggestion = {id:"", label: "",rating : []};
-          //      'properties' : [{id: P1, label: "wurst"},...],
-        //   'suggestions': [ { id: P32, label:"hans", rating: [+1,0,-1], ...}
-
-        }
     })
 });
+
+
+function submitJson(entry_id,properties,ratings) {
+    var evaluations = {
+        entity: entry_id,
+        properties: ratings,
+        suggestions: properties
+    };
+
+    console.log(evaluations);
+    $('input#result').val( JSON.stringify(evaluations) );
+    $('#form').submit();
+}
 
 //var id = k.parent("div").data("property");
