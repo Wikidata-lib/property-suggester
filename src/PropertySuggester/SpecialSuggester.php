@@ -61,19 +61,11 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 		$out->addHTML( "<br/>" );
 		$entity = $out->getRequest()->getText( "entity-chooser" );
 		if ( $entity ) {
-			$itemId = $this->parseItemId( $entity );
-			$item = $this->loadEntity( $itemId )->getEntity();
-			$label = $item->getLabel( $this->language );
+			$item = $this->get_the_item( $entity, $out );
 
-			$out->addElement( 'h2', null, "Chosen Item: $label" );
-			$out->addElement( 'div', array( 'class' => 'entry', 'data-entry-id' => "$itemId" ) );
-
-			$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 			$snaks = $item->getAllSnaks();
 			foreach ( $snaks as $snak ) {
-				$pid = $snak->getPropertyId();
-				$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
-				$out->addElement( 'li', array( 'data-property' => $pid, 'data-label' => $plabel ), "$pid $plabel" );
+				$this->add_properties( $snak, $out );
 			}
 			$out->addHTML( Html::closeElement( 'ul') );
 
@@ -83,26 +75,10 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 			$out->addHTML( "<ul class='suggestion_evaluation'>" );
 
 			foreach ( $suggestions as $suggestion ) {
-				$suggestion_prop = $suggestion->getPropertyId();
-				$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
-				$pid = $suggestion_prop->getSerialization();
-				$out->addHTML( "<li data-property='$pid' data-label ='$plabel'>" );
-
-				$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
-
-				$out->addHTML( "<span class='buttons'>" );
-				$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
-				$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button question_button selected', 'data-rating' => '0' ) );
-				$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
-				$out->addHTML( "</span>" );
-
-				$out->addHTML( "</li>" );
+				$this->add_suggestions( $suggestion, $out );
 			}
 			$out->addHTML( '</ul>' );
-
-			//$out->addHTML( "<form action='$url' method='get'>" );
 			$out->addHTML( "<input value='Submit' id='submit-button' name='submit-button' type='button'  >" );
-			//$out->addHTML( "</form>" );
 			$out->addHTML( "<br/>" );
 
 			// was war gut?
@@ -123,6 +99,59 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 		$dbw = wfGetDB( DB_MASTER );
 		$dbw->insert( 'wbs_evaluations' , array( 'content' => $result, 'session_id' => $identifier) );
 
+	}
+
+	/**
+	 * @param $suggestion
+	 * @param $out
+	 */
+	public function add_suggestions( $suggestion, $out ) {
+		$suggestion_prop = $suggestion->getPropertyId();
+		$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
+		$pid = $suggestion_prop->getSerialization();
+		$out->addHTML( "<li data-property='$pid' data-label ='$plabel'>" );
+		$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
+		$out->addHTML( "<span class='buttons'>" );
+		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button question_button selected', 'data-rating' => '0' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
+		$out->addHTML( "</span>" );
+		$out->addHTML( "</li>" );
+	}
+
+	/**
+	 * @param $snak
+	 * @param $out
+	 */
+	public function add_properties( $snak, $out ) {
+		$pid = $snak->getPropertyId();
+		$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
+		$out->addElement( 'li', array( 'data-property' => $pid, 'data-label' => $plabel ), "$pid $plabel" );
+	}
+
+	/**
+	 * @param $entity
+	 * @param $out
+	 * @return \Wikibase\Entity
+	 */
+	public function get_the_item( $entity, $out ) {
+		$itemId = $this->parseItemId( $entity );
+		$item = $this->loadEntity( $itemId )->getEntity();
+		$label = $item->getLabel( $this->language );
+		$this->add_elements( $out, $label, $itemId );
+		return $item;
+	}
+
+
+	/**
+	 * @param $out
+	 * @param $label
+	 * @param $itemId
+	 */
+	public function add_elements( $out, $label, $itemId ) {
+		$out->addElement( 'h2', null, "Chosen Item: $label" );
+		$out->addElement( 'div', array( 'class' => 'entry', 'data-entry-id' => "$itemId" ) );
+		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 	}
 }
 
