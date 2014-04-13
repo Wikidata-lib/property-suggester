@@ -55,13 +55,29 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 
 		$url = $out->getRequest()->getRequestURL();
 		$out->addHTML( "<form action='$url' method='post' id ='form'>" );
-		$out->addHTML( "<input placeholder='Item' id='entity-chooser' name='entity-chooser' autofocus>" );
-		$out->addHTML( "<input value='Send' id='add-property-btn2' type='submit'  >" );
 		$out->addElement("input", array("type"=> "hidden", "name" => "result", 'id'=>'result'));
 		$out->addHTML( "<br/>" );
-		$entity = $out->getRequest()->getText( "entity-chooser" );
-		if ( $entity ) {
-			$item = $this->get_the_item( $entity, $out );
+
+
+        $dbr = wfGetDB( DB_SLAVE );
+        $res = $dbr->select(
+            'page',
+            array('page_title') , //vars
+            array( " page_title LIKE 'Q%' "), //cond
+            __METHOD__,
+            array(
+                'ORDER BY' => 'RAND()',
+                'LIMIT'	   => 1
+            )
+        );
+        $resultArray = array();
+        foreach ( $res as $row ) {
+            $qid = $row->page_title ;
+            $resultArray[] = $qid;
+        }
+
+		if ( $qid ) {
+			$item = $this->get_the_item( $qid, $out );
 
 			$snaks = $item->getAllSnaks();
 			foreach ( $snaks as $snak ) {
@@ -90,14 +106,14 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 
 		$result = $out->getRequest()->getText( "result" );
 		if ($result){
-			$this->saveResult($result);
+			$this->saveResult($result, $qid);
 		}
 	}
 
-	public function saveResult( $result) {
+	public function saveResult( $result, $qid) {
 		$identifier = $this->getUser()->getName();
 		$dbw = wfGetDB( DB_MASTER );
-		$dbw->insert( 'wbs_evaluations' , array( 'content' => $result, 'session_id' => $identifier) );
+		$dbw->insert( 'wbs_evaluations' , array( 'content' => $result,'entity' => $qid,  'session_id' => $identifier) );
 
 	}
 
@@ -149,7 +165,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 	 * @param $itemId
 	 */
 	public function add_elements( $out, $label, $itemId ) {
-		$out->addElement( 'h2', null, "Chosen Item: $label" );
+		$out->addElement( 'h2', null, "Selected Random Item: $label $itemId" );
 		$out->addElement( 'div', array( 'class' => 'entry', 'data-entry-id' => "$itemId" ) );
 		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 	}
