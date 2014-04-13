@@ -35,7 +35,7 @@ $(document).ready(function () {
             properties.push({'id': id,'label':label})
         });
         console.log(properties);
-        var  entry_id  = $(".entry").data("entry-id");
+        var  entry_id  = $("input[name=qid]").val();
         submitJson(  entry_id,properties,ratings);
 
 
@@ -51,7 +51,7 @@ function submitJson(entry_id,properties,ratings) {
     };
 
     console.log(evaluations);
-    $('input#result').val( JSON.stringify(evaluations) );
+    $('input[name=result]').val( JSON.stringify(evaluations) );
     $('#form').submit();
 }
 

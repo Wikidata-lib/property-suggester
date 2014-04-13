@@ -3,10 +3,13 @@
 namespace PropertySuggester;
 
 use Html;
+use OutputPage;
 use PropertySuggester\Suggesters\SimpleSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
+use PropertySuggester\Suggesters\Suggestion;
+use Wikibase\DataModel\Entity\Entity;
+use Wikibase\DataModel\Snak\Snak;
 use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
-use Wikibase\Repo\WikibaseRepo;
 
 class SpecialSuggester extends SpecialWikibaseRepoPage
 {
@@ -43,7 +46,15 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 	public function execute( $par ) {
 		$out = $this->getContext()->getOutput();
 
-		$this->setHeaders();
+        // process response
+        $result = $out->getRequest()->getText( 'result' );
+        if ($result){
+            $oldRequest = $out->getRequest()->getText( 'qid' );
+            $this->saveResult($result, $oldRequest);
+        }
+
+        // create new form
+        $this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
 		$out->addModules( 'ext.PropertySuggester' );
 
@@ -53,77 +64,68 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 			. ' and look how the results match to tennis player and persons.</p>'
 		);
 
-		$url = $out->getRequest()->getRequestURL();
-		$out->addHTML( "<form action='$url' method='post' id ='form'>" );
-		$out->addElement("input", array("type"=> "hidden", "name" => "result", 'id'=>'result'));
-		$out->addHTML( "<br/>" );
-
-
-        $dbr = wfGetDB( DB_SLAVE );
-        $res = $dbr->select(
-            'page',
-            array('page_title') , //vars
-            array( " page_title LIKE 'Q%' "), //cond
-            __METHOD__,
-            array(
-                'ORDER BY' => 'RAND()',
-                'LIMIT'	   => 1
-            )
-        );
-        $resultArray = array();
-        foreach ( $res as $row ) {
-            $qid = $row->page_title ;
-            $resultArray[] = $qid;
+        $qid = $this->getRequest()->getText("next-id");
+        if (!$qid) {
+            $qid = $this->getRandomQid();
         }
 
-		if ( $qid ) {
-			$item = $this->get_the_item( $qid, $out );
+        $url = $out->getRequest()->getRequestURL();
+		$out->addHTML( "<form action='$url' method='post' id ='form'>" ); // add Element
+        $out->addElement("input", array("type"=> "hidden", "name" => "qid", 'value' => $qid ));
+        $out->addElement("input", array("type"=> "hidden", "name" => "result"));
+		$out->addHTML( "<br/>" ); // add element
 
-			$snaks = $item->getAllSnaks();
-			foreach ( $snaks as $snak ) {
-				$this->add_properties( $snak, $out );
-			}
-			$out->addHTML( Html::closeElement( 'ul') );
+        $item = $this->get_the_item( $qid, $out );
+        $label = $item->getLabel( $this->language );
+        $itemId = $item->getId()->getSerialization();
+        $out->addElement( 'h2', null, "Selected Random Item: $label $itemId" );
 
-			$suggestions = $this->suggester->suggestByItem( $item, 7 );
 
-			$out->addElement( 'h2', null, 'Suggestions' );
-			$out->addHTML( "<ul class='suggestion_evaluation'>" );
+        $out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
+        $snaks = $item->getAllSnaks();
+        foreach ( $snaks as $snak ) {
+            $this->addPropertyHtml( $snak, $out );
+        }
+        $out->addHTML( Html::closeElement( 'ul') );
 
-			foreach ( $suggestions as $suggestion ) {
-				$this->add_suggestions( $suggestion, $out );
-			}
-			$out->addHTML( '</ul>' );
-			$out->addHTML( "<input value='Submit' id='submit-button' name='submit-button' type='button'  >" );
-			$out->addHTML( "<br/>" );
+        $out->addElement( 'h2', null, 'Suggestions' );
+        $suggestions = $this->suggester->suggestByItem( $item, 7 );
 
-			// was war gut?
+        $out->addHTML( "<ul class='suggestion_evaluation'>" ); // use addElement
+        foreach ( $suggestions as $suggestion ) {
+            $this->addSuggestionHtml( $suggestion, $out );
+        }
+        $out->addHTML( '</ul>' ); // use addElement
 
-			// was fehlte?
+        $out->addHTML( "<input value='Submit' id='submit-button' name='submit-button' type='button'  >" ); // add element
+        $out->addHTML( "<br/>" );
 
-		}
+        // was war gut?
+
+        // was fehlte?
+
 		$out->addHTML( "</form>" );
 
-		$result = $out->getRequest()->getText( "result" );
-		if ($result){
-			$this->saveResult($result, $qid);
-		}
 	}
 
 	public function saveResult( $result, $qid) {
 		$identifier = $this->getUser()->getName();
-		$dbw = wfGetDB( DB_MASTER );
+        $dbw = wfGetDB( DB_MASTER );
 		$dbw->insert( 'wbs_evaluations' , array( 'content' => $result,'entity' => $qid,  'session_id' => $identifier) );
-
 	}
 
 	/**
-	 * @param $suggestion
-	 * @param $out
+	 * @param Suggestion $suggestion
+	 * @param OutputPage $out
 	 */
-	public function add_suggestions( $suggestion, $out ) {
+	public function addSuggestionHtml( Suggestion $suggestion, OutputPage $out ) {
 		$suggestion_prop = $suggestion->getPropertyId();
-		$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
+        try {
+		    $plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
+        } catch (\Exception $e) {
+            $out->addHTML("ERROR: $suggestion_prop");
+            return;
+        }
 		$pid = $suggestion_prop->getSerialization();
 		$out->addHTML( "<li data-property='$pid' data-label ='$plabel'>" );
 		$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
@@ -136,38 +138,43 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 	}
 
 	/**
-	 * @param $snak
-	 * @param $out
+	 * @param Snak $snak
+	 * @param OutputPage $out
 	 */
-	public function add_properties( $snak, $out ) {
+	public function addPropertyHtml( Snak $snak, OutputPage $out ) {
 		$pid = $snak->getPropertyId();
 		$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
 		$out->addElement( 'li', array( 'data-property' => $pid, 'data-label' => $plabel ), "$pid $plabel" );
 	}
 
 	/**
-	 * @param $entity
-	 * @param $out
-	 * @return \Wikibase\Entity
+	 * @param string $entity
+	 * @return Entity
 	 */
-	public function get_the_item( $entity, $out ) {
+	public function get_the_item( $entity ) {
 		$itemId = $this->parseItemId( $entity );
 		$item = $this->loadEntity( $itemId )->getEntity();
-		$label = $item->getLabel( $this->language );
-		$this->add_elements( $out, $label, $itemId );
 		return $item;
 	}
 
-
-	/**
-	 * @param $out
-	 * @param $label
-	 * @param $itemId
-	 */
-	public function add_elements( $out, $label, $itemId ) {
-		$out->addElement( 'h2', null, "Selected Random Item: $label $itemId" );
-		$out->addElement( 'div', array( 'class' => 'entry', 'data-entry-id' => "$itemId" ) );
-		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
-	}
+    /**
+     * @return string
+     */
+    public function getRandomQid()
+    {
+        $dbr = wfGetDB(DB_SLAVE);
+        $res = $dbr->select(
+            'page',
+            array('page_title'), //vars
+            array("page_title LIKE 'Q%'"), //cond
+            __METHOD__,
+            array(
+                'ORDER BY' => 'rand()',
+                'LIMIT' => 1
+            )
+        );
+        $qid = $res->fetchObject()->page_title;
+        return $qid;
+    }
 }
 
