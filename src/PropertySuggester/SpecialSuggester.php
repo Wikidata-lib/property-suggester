@@ -56,33 +56,42 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
         // create new form
         $this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
-		$out->addModules( 'ext.PropertySuggester' );
+		
+		$out->addHTML("This is the evaluation site for suggetsions of the Property Suggester.<br/> You get a random item and are able to see all its properties.
+		 In the next section, you get ranked suggestions of the entity suggester.  <br/> Please mark those as appropriate or good suggestions (green smiling emoticon) or  inapproriate
+		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is or you cannot state if it is good or bad, use the orange emoticon in the middle.
+		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. In the overall rating, please rate the overall quality of the entity suggester (not e.g. the layout of this page).");
 
 		$out->addWikiMsg( 'propertysuggester-intro' );
-		$out->addHTML( '<p>Just enter some properties, the PropertySuggester will propose matching properties ranked by correlation.<br/>'
-			. 'Try for example <i>place of birth</i> (person) and <i>singles record</i> (tennis player)'
-			. ' and look how the results match to tennis player and persons.</p>'
-		);
+		$qid = $this->getRequest()->getText("next-id");
 
-        $qid = $this->getRequest()->getText("next-id");
         if (!$qid) {
             $qid = $this->getRandomQid();
-        }
+		}
+		$item = $this->get_the_item( $qid );
+		$snaks = $item->getAllSnaks();
+		if (!$snaks){
+			$i=0;
+			while ( $i<100 or !$snaks){
+				$qid = $this->getRandomQid();
+				$item = $this->get_the_item( $qid );
+				$snaks = $item->getAllSnaks();
+				$i = $i+1;
+			}
+		}
+		$url = $out->getRequest()->getRequestURL();
+		$out->addHTML(Html::openElement("form", array("action"=> $url, "method"=>'post', "id"=>'form')));
 
-        $url = $out->getRequest()->getRequestURL();
-		$out->addHTML( "<form action='$url' method='post' id ='form'>" ); // add Element
         $out->addElement("input", array("type"=> "hidden", "name" => "qid", 'value' => $qid ));
         $out->addElement("input", array("type"=> "hidden", "name" => "result"));
-		$out->addHTML( "<br/>" ); // add element
+		$out->addElement("br");
 
-        $item = $this->get_the_item( $qid, $out );
         $label = $item->getLabel( $this->language );
         $itemId = $item->getId()->getSerialization();
         $out->addElement( 'h2', null, "Selected Random Item: $label $itemId" );
 
 
         $out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
-        $snaks = $item->getAllSnaks();
         foreach ( $snaks as $snak ) {
             $this->addPropertyHtml( $snak, $out );
         }
@@ -91,27 +100,59 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
         $out->addElement( 'h2', null, 'Suggestions' );
         $suggestions = $this->suggester->suggestByItem( $item, 7 );
 
-        $out->addHTML( "<ul class='suggestion_evaluation'>" ); // use addElement
+        $out->addHTML( Html::openElement("ul",array("class"=>'suggestion_evaluation')));
         foreach ( $suggestions as $suggestion ) {
             $this->addSuggestionHtml( $suggestion, $out );
         }
-        $out->addHTML( '</ul>' ); // use addElement
+        $out->addHTML( Html::closeElement("ul") );
+		$out->addHTML(Html::openElement("span", array("class" =>"description")));
+		$out->addHTML("Which properties were missing?");
+		$out->addHTML(Html::closeElement("span"));
+		$out->addElement("input", array("name" => "missing", "class" => "question"));
 
-        $out->addHTML( "<input value='Submit' id='submit-button' name='submit-button' type='button'  >" ); // add element
-        $out->addHTML( "<br/>" );
+		$out->addElement("br");
+		$out->addHTML(Html::openElement("span",array("class" =>"description")));
+		$out->addHTML("What did you like/ not like ?");
+		$out->addHTML(Html::closeElement("span"));
+		$out->addElement("textarea", array("name" => "like", "class"=>"question textfield", "rows"=>"2", "width"=>"200px"));
 
-        // was war gut?
+		$out->addElement("br");
+		$out->addHTML(Html::openElement("span",array("class" =>"description")));
+		$out->addHTML("Overall experience");
+		$out->addHTML(Html::closeElement("span"));
+		$out->addHTML(Html::openElement("select",array("name" => "overall_exp", "class"=>"question")));
+		$out->addElement("br");
+		$out->addElement("option",null,"");
+		$out->addElement("option",null,"1 (very good)");
+		$out->addElement("option",null,"2");
+		$out->addElement("option",null,"3");
+		$out->addElement("option",null,"4");
+		$out->addElement("option",null,"5");
+		$out->addElement("option",null,"6 (very bad)");
 
-        // was fehlte?
+		$out->addHTML(Html::closeElement("select"));
+		$out->addElement("br");
+		$out->addElement("br");
+		$out->addElement("input",array("value"=>"Submit", "id"=> "submit-button", "type"=>"button"));
 
-		$out->addHTML( "</form>" );
+		$out->addHTML( Html::closeElement("form"));
 
 	}
 
 	public function saveResult( $result, $qid) {
 		$identifier = $this->getUser()->getName();
         $dbw = wfGetDB( DB_MASTER );
-		$dbw->insert( 'wbs_evaluations' , array( 'content' => $result,'entity' => $qid,  'session_id' => $identifier) );
+		$result = json_decode($result);
+		$missing = $result->questions->missing;
+		$properties = json_encode($result->properties);
+		$suggestions_result = json_encode($result->suggestions);
+		$positive = $result->questions->positive;
+		$overall = $result->questions->overall;
+
+		$dbw->insert( 'wbs_evaluations' ,
+			array(
+				'properties' => $properties, 'suggestions'=> $suggestions_result,'entity' => $qid,  'session_id' => $identifier,
+			'missing'=>$missing, 'positive'=> $positive, 'overall'=> $overall ));
 	}
 
 	/**
