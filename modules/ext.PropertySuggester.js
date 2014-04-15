@@ -41,7 +41,16 @@ $(document).ready(function () {
 
     })
 });
+function getQuestionResults() {
+    var overall = $('select[name=overall_exp]').val()[0];
+    var like = $('textarea[name=like]').val();
+    var missing = $('input[name=missing]').val();
 
+    var question = {"overall": overall,
+                    "positive": like,
+                    "missing": missing};
+    return question;
+}
 
 function submitJson(entry_id,properties,ratings) {
     var evaluations = {
