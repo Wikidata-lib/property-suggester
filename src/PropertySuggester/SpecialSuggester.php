@@ -56,7 +56,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
         // create new form
         $this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
-		
+
 		$out->addHTML("This is the evaluation site for suggetsions of the Property Suggester.<br/> You get a random item and are able to see all its properties.
 		 In the next section, you get ranked suggestions of the entity suggester.  <br/> Please mark those as appropriate or good suggestions (green smiling emoticon) or  inapproriate
 		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is or you cannot state if it is good or bad, use the orange emoticon in the middle.
