@@ -4,5 +4,6 @@
     },
     "propertysuggester-desc": "Shows suggested properties",
     "propertysuggester": "Property Suggester",
-    "propertysuggester-intro": "This is the PropertySuggester."
+    "propertysuggester-intro": "This is the PropertySuggester.",
+    "special-propertysuggester": "PropertySuggester Evaluation"
 }
