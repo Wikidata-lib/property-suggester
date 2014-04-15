@@ -21,7 +21,7 @@ $(document).ready(function () {
             var id = $this.parents("li").data("property");
             var label = $this.parents("li").data('label');
             var rating = $this.data('rating');
-            ratings.push( {'id': id, 'label':label, 'rating': rating } );
+            ratings.push({'id': id, 'label': label, 'rating': rating });
         });
 
         console.log(ratings);
@@ -32,11 +32,11 @@ $(document).ready(function () {
             var $this = $(this);
             var id = $this.data("property");
             var label = $this.data('label');
-            properties.push({'id': id,'label':label})
+            properties.push({'id': id, 'label': label})
         });
         console.log(properties);
-        var  entry_id  = $("input[name=qid]").val();
-        submitJson(  entry_id,properties,ratings);
+        var entry_id = $("input[name=qid]").val();
+        submitJson(entry_id, properties, ratings);
 
 
     })
@@ -52,15 +52,19 @@ function getQuestionResults() {
     return question;
 }
 
-function submitJson(entry_id,properties,ratings) {
+function submitJson(entry_id, properties, ratings) {
+    var question = getQuestionResults();
+    console.log(question);
     var evaluations = {
         entity: entry_id,
         properties: properties,
-        suggestions: ratings
+        suggestions: ratings,
+        questions: question
     };
 
+
     console.log(evaluations);
-    $('input[name=result]').val( JSON.stringify(evaluations) );
+    $('input[name=result]').val(JSON.stringify(evaluations));
     $('#form').submit();
 }
 
