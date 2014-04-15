@@ -14,15 +14,10 @@ use Wikibase\EntityLookup;
 use Wikibase\TermIndex;
 
 /**
- *
  * @covers PropertySuggester\GetSuggestionHelper
- *
  * @group PropertySuggester
- *
  * @group API
- *
  * @group medium
- *
  */
 class GetSuggestionHelperTest extends MediaWikiTestCase {
 
@@ -121,8 +116,4 @@ class GetSuggestionHelperTest extends MediaWikiTestCase {
 		$this->assertEquals( $result3, array( 'foo' ) );
 	}
 
-	public function tearDown() {
-		parent::tearDown();
-	}
 }
-

@@ -6,6 +6,7 @@ use LoadBalancer;
 use InvalidArgumentException;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\PropertyId;
+use ResultWrapper;
 
 /**
  * Class SimpleSuggester
@@ -41,6 +42,7 @@ class SimpleSuggester implements SuggesterEngine {
 	/**
 	 * @param int[] $propertyIds
 	 * @param int $limit
+	 * @throws InvalidArgumentException
 	 * @return Suggestion[]
 	 */
 	protected function getSuggestions( array $propertyIds, $limit ) {
@@ -68,13 +70,7 @@ class SimpleSuggester implements SuggesterEngine {
 		);
 		$this->lb->reuseConnection( $dbr );
 
-		$resultArray = array();
-		foreach ( $res as $row ) {
-			$pid = PropertyId::newFromNumber( (int)$row->pid );
-			$suggestion = new Suggestion( $pid, $row->prob );
-			$resultArray[] = $suggestion;
-		}
-		return $resultArray;
+		return $this->buildResult($res);
 	}
 
 	/**
@@ -108,4 +104,17 @@ class SimpleSuggester implements SuggesterEngine {
 		return $this->getSuggestions( $numericIds, $limit );
 	}
 
+	/**
+	 * @param ResultWrapper $res
+	 * @return Suggestion[]
+	 */
+	protected function buildResult( ResultWrapper $res ) {
+		$resultArray = array();
+		foreach ( $res as $row ) {
+			$pid = PropertyId::newFromNumber( ( int ) $row->pid );
+			$suggestion = new Suggestion( $pid, $row->prob );
+			$resultArray[] = $suggestion;
+		}
+		return $resultArray;
+	}
 }
