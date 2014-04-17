@@ -52,6 +52,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
             $oldRequest = $out->getRequest()->getText( 'qid' );
             $this->saveResult($result, $oldRequest);
         }
+		$out->addModules( 'ext.PropertySuggester' );
 
         // create new form
         $this->setHeaders();
@@ -62,7 +63,7 @@ class SpecialSuggester extends SpecialWikibaseRepoPage
 		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is or you cannot state if it is good or bad, use the orange emoticon in the middle.
 		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. In the overall rating, please rate the overall quality of the entity suggester (not e.g. the layout of this page).");
 
-		$out->addWikiMsg( 'propertysuggester-intro' );
+		//$out->addWikiMsg( 'propertysuggester-intro' );
 		$qid = $this->getRequest()->getText("next-id");
 
         if (!$qid) {
