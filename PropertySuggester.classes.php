@@ -6,7 +6,7 @@
 return array(
 	'PropertySuggesterHooks' => 'PropertySuggesterHooks.php',
 
-	'PropertySuggester\SpecialSuggester' => 'src/PropertySuggester/SpecialSuggester.php',
+	'PropertySuggester\SpecialEvaluator' => 'src/PropertySuggester/Evaluation/SpecialEvaluator.php',
 
 	'PropertySuggester\Maintenance\UpdateTable' => '/maintenance/UpdatePropertyRelationsTable.php',
 

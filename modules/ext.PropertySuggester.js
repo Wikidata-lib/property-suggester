@@ -8,8 +8,16 @@ $(document).ready(function () {
 
     $(".button").on("click", function () {
         var $this = $(this);
-        $this.siblings(".button").removeClass("selected");
-        $this.addClass("selected");
+        if ($this.hasClass("selected")){
+            $this.removeClass("selected");
+            $(".nothing_button").addClass("selected");
+        }
+        else{
+            $this.siblings(".button").removeClass("selected");
+            $this.addClass("selected");
+        }
+
+
     });
 
     $('#submit-button').on("click", function () {
@@ -18,10 +26,12 @@ $(document).ready(function () {
 
         $selected.each(function () {
             var $this = $(this);
-            var id = $this.parents("li").data("property");
-            var label = $this.parents("li").data('label');
+            var $suggestion = $this.parents("li");
+            var id = $suggestion.data("property");
+            var label = $suggestion.data('label');
             var rating = $this.data('rating');
-            ratings.push({'id': id, 'label': label, 'rating': rating });
+            var probability = $suggestion.data("probability");
+            ratings.push({'id': id, 'label': label, 'rating': rating, 'probability': probability });
         });
 
         console.log(ratings);
@@ -42,12 +52,12 @@ $(document).ready(function () {
     })
 });
 function getQuestionResults() {
-    var overall = $('select[name=overall_exp]').val()[0];
-    var like = $('textarea[name=like]').val();
+    var overall = $('select[name=overall_exp]').val()[0]; // TODO ausschreiben
+    var opinion = $('textarea[name=opinion]').val();
     var missing = $('input[name=missing]').val();
 
     var question = {"overall": overall,
-                    "positive": like,
+                    "opinion": opinion,
                     "missing": missing};
     return question;
 }
