@@ -10,6 +10,7 @@ use PropertySuggester\Suggesters\Suggestion;
 use Wikibase\DataModel\Entity\Entity;
 use Wikibase\DataModel\Snak\Snak;
 use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
+use PropertySuggester\EvaluationResult;
 
 class SpecialEvaluator extends SpecialWikibaseRepoPage
 {
@@ -31,7 +32,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function __construct() {
 		parent::__construct( 'PropertySuggester', '' );
 		$this->language = $this->getContext()->getLanguage()->getCode();
-
+		$this->resultEvaluation = new EvaluationResult();
 		$lb = wfGetLB( DB_SLAVE );
 		$this->suggester = new SimpleSuggester( $lb );
 		global $wgPropertySuggesterDeprecatedIds;
@@ -45,15 +46,13 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	 */
 	public function execute( $par ) {
 		$out = $this->getContext()->getOutput();
+		$out->addModules( 'ext.PropertySuggester' );
 
 		// process response
-		$result = $out->getRequest()->getText( 'result' ); // TODO alles was speichert in eigene klasse!
-		if ( $result ) {
-			$resultQid = $out->getRequest()->getText( 'qid' );
-			$opinionAnswer = $out->getRequest()->getText( 'opinion' ); // TODO request an saveResult übergeben, da auslesen
-			$this->saveResult( $result, $resultQid );
-		}
-		$out->addModules( 'ext.PropertySuggester' );
+		$old_request = $out->getRequest();
+		$identifier = $this->getUser()->getName();
+		$this->resultEvaluation->processResult( $old_request, $out, $identifier );
+
 
 		// create new form
 		$this->setHeaders();
@@ -70,13 +69,15 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		if ( !$qid ) {
 			$qid = $this->getRandomQid();
 		}
-		$item = $this->get_the_item( $qid );
+		$number = $this->checkDoubleEntity( $identifier, $qid );
+		$item = $this->getItem( $qid );
 		$snaks = $item->getAllSnaks();
 		if ( !$snaks ) {
 			$i = 0;
-			while ( $i < 100 or !$snaks ) {
+			while ( $i < 100 or !$snaks or $number != 0 ) {
 				$qid = $this->getRandomQid();
-				$item = $this->get_the_item( $qid ); // TODO keine unter_striche, stattdessen camelCase
+				$number = $this->checkDoubleEntity( $identifier, $qid );
+				$item = $this->getItem( $qid );
 				$snaks = $item->getAllSnaks();
 				$i = $i + 1;
 			}
@@ -111,7 +112,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Which properties were missing?" );
 		$out->addHTML( Html::closeElement( "span" ) );
-		$out->addElement( "input", array( "name" => "missing", "class" => "question" ) );
+		$out->addElement( "input", array( "name" => "property-chooser", "class" => "question" ) );
 
 		$out->addElement( "br" );
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
@@ -142,21 +143,6 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 	}
 
-	public function saveResult( $result, $qid ) {
-		$identifier = $this->getUser()->getName();
-		$dbw = wfGetDB( DB_MASTER );
-		$result = json_decode( $result );
-		$missing = $result->questions->missing;
-		$properties = json_encode( $result->properties );
-		$suggestions_result = json_encode( $result->suggestions );
-		$opinion = $result->questions->opinion;
-		//$overall = $result->questions->overall;
-
-		$dbw->insert( 'wbs_evaluations',
-			array(
-				'properties' => $properties, 'suggestions' => $suggestions_result, 'entity' => $qid, 'session_id' => $identifier,
-				'missing' => $missing, 'opinion' => $opinion ) );
-	}
 
 	/**
 	 * @param Suggestion $suggestion
@@ -176,9 +162,9 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
 		$out->addHTML( "<span class='buttons'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button', 'data-rating' => '0' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-question button nothing_button selected', 'data-rating' => '-2', 'style' => 'display:none' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button selected', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button', 'data-rating' => '-2' ) );
 		$out->addHTML( "</span>" );
 		$out->addHTML( "</li>" );
 	}
@@ -197,7 +183,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	 * @param string $entity
 	 * @return Entity
 	 */
-	public function get_the_item( $entity ) {
+	public function getItem( $entity ) {
 		$itemId = $this->parseItemId( $entity );
 		$item = $this->loadEntity( $itemId )->getEntity();
 		return $item;
@@ -220,6 +206,21 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		);
 		$qid = $res->fetchObject()->page_title;
 		return $qid;
+	}
+
+	/**
+	 * @param $identifier
+	 * @param $qid
+	 * @return int
+	 */
+	public function checkDoubleEntity( $identifier, $qid ) {
+		$dbr = wfGetDB( DB_SLAVE );
+		$entityResults = $dbr->select(
+			'wbs_evaluations',
+			array( 'entity' ),
+			array( "session_id" => $identifier, "entity" => $qid ) );
+		$numberOfRows = $entityResults->numRows();
+		return $numberOfRows;
 	}
 }
 

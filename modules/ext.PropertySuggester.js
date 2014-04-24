@@ -6,17 +6,18 @@ $(document).ready(function () {
         type: 'item'
     });
 
+    var propertyChooser = $('input[name=property-chooser]');
+    propertyChooser.entityselector({
+        url: mw.util.wikiScript('api'),
+        selectOnAutocomplete: true,
+        type: 'property'
+    });
+
+
     $(".button").on("click", function () {
         var $this = $(this);
-        if ($this.hasClass("selected")){
-            $this.removeClass("selected");
-            $(".nothing_button").addClass("selected");
-        }
-        else{
             $this.siblings(".button").removeClass("selected");
             $this.addClass("selected");
-        }
-
 
     });
 
@@ -54,7 +55,7 @@ $(document).ready(function () {
 function getQuestionResults() {
     var overall = $('select[name=overall_exp]').val()[0]; // TODO ausschreiben
     var opinion = $('textarea[name=opinion]').val();
-    var missing = $('input[name=missing]').val();
+    var missing = $('input[name=property-chooser]').val();
 
     var question = {"overall": overall,
                     "opinion": opinion,
