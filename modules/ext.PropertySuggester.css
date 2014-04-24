@@ -40,6 +40,9 @@
 .question_button.selected {
     color: #add8e6;
 }
+.meh_button.selected{
+    color: orange;
+}
 
 .question{
     width: 200px;
