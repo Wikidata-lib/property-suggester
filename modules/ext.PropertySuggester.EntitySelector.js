@@ -56,7 +56,11 @@ $.widget( 'wikibase.entityselector', $.wikibase.entityselector, {
 	},
 
 	__getEntity: function() {
-		var $entityView = this.element.closest( ':wikibase-entityview');
+        try {
+		    var $entityView = this.element.closest( ':wikibase-entityview');
+        } catch (e) {
+            return null;
+        }
 		var entity = $entityView.length > 0 ? $entityView.data( 'entityview' ).option( 'value' ) : null;
 		if( entity ) {
 			return entity;
