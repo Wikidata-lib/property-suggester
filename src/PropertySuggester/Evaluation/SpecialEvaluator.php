@@ -8,6 +8,7 @@ use PropertySuggester\Suggesters\SimpleSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
 use PropertySuggester\Suggesters\Suggestion;
 use Wikibase\DataModel\Entity\Entity;
+use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Snak\Snak;
 use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
 use PropertySuggester\EvaluationResult;
@@ -50,82 +51,68 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		// process response
 		$old_request = $out->getRequest();
-		$identifier = $this->getUser()->getName();
-		$this->resultEvaluation->processResult( $old_request, $out, $identifier );
+		$user = $this->getUser()->getName();
+		$this->resultEvaluation->processResult( $old_request, $out, $user );
 
 
 		// create new form
 		$this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
 
+		// TODO wiki-msg
 		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/> You get a random item and are able to see all its properties.
 		 In the next section, you get ranked suggestions of the entity suggester.  <br/> Please mark those as appropriate or good suggestions (green smiling emoticon) or  inapproriate
 		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is or you cannot state if it is good or bad, use the orange emoticon in the middle.
 		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. In the overall rating, please rate the overall quality of the entity suggester (not e.g. the layout of this page)." );
 
 		//$out->addWikiMsg( 'propertysuggester-intro' );
-		$qid = $this->getRequest()->getText( "next-id" );
-
-		if ( !$qid ) {
-			$qid = $this->getRandomQid();
-		}
-		$number = $this->checkDoubleEntity( $identifier, $qid );
-		$item = $this->getItem( $qid );
-		$snaks = $item->getAllSnaks();
-		if ( !$snaks ) {
-			$i = 0;
-			while ( $i < 100 or !$snaks or $number != 0 ) {
-				$qid = $this->getRandomQid();
-				$number = $this->checkDoubleEntity( $identifier, $qid );
-				$item = $this->getItem( $qid );
-				$snaks = $item->getAllSnaks();
-				$i = $i + 1;
-			}
-		}
-		$url = $out->getRequest()->getRequestURL();
-		$out->addHTML( Html::openElement( "form", array( "action" => $url, "method" => 'post', "id" => 'form' ) ) );
-
-		$out->addElement( "input", array( "type" => "hidden", "name" => "qid", 'value' => $qid ) );
-		$out->addElement( "input", array( "type" => "hidden", "name" => "result" ) );
-		$out->addElement( "br" );
-
+		$item = $this->getNewItemForUser( $user );
 		$itemLabel = $item->getLabel( $this->language );
 		$itemId = $item->getId()->getSerialization();
-		$out->addElement( 'h2', null, "Selected Random Item: $itemLabel $itemId" );
+		$suggestions = $this->suggester->suggestByItem( $item, 7, 0.0 );
+		$url = $out->getRequest()->getRequestURL();
 
+		$out->addHTML( Html::openElement( "form", array( "action" => $url, "method" => 'post', "id" => 'form' ) ) );
+
+		$out->addHTML( HTML::hidden( 'qid', $itemId ) );
+		$out->addElement( "input", array( "type" => "hidden", "name" => "result" ) ); // TODO hidden
+		$out->addElement( "br" );
+
+		$out->addElement( 'h2', null, "Selected Random Item: $itemLabel $itemId" ); // TODO wiki-msg
 
 		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
-		foreach ( $snaks as $snak ) {
-			$this->addPropertyHtml( $snak, $out );
+		$claims = $item->getClaims();
+		foreach ( $claims as $claim ) {
+			$this->addPropertyHtml( $claim->getMainSnak(), $out );
 		}
 		$out->addHTML( Html::closeElement( 'ul' ) );
 
 		$out->addElement( 'h2', null, 'Suggestions' );
-		$suggestions = $this->suggester->suggestByItem( $item, 7 );
 
 		$out->addHTML( Html::openElement( "ul", array( "class" => 'suggestion_evaluation' ) ) );
-
 		foreach ( $suggestions as $suggestion ) {
 			$this->addSuggestionHtml( $suggestion, $out );
 		}
 		$out->addHTML( Html::closeElement( "ul" ) );
+
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Which properties were missing?" );
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addElement( "input", array( "name" => "property-chooser", "class" => "question" ) );
 
 		$out->addElement( "br" );
+
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "What did you like/ not like ?" );
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addElement( "textarea", array( "name" => "opinion", "class" => "question textfield", "rows" => "2", "width" => "200px" ) );
 
 		$out->addElement( "br" );
+
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Overall experience" );
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addHTML( Html::openElement( "select", array( "name" => "overall_exp", "class" => "question" ) ) );
-		$out->addElement( "br" );
 		$out->addElement( "option", null, "" );
 		$out->addElement( "option", null, "1 (very good)" );
 		$out->addElement( "option", null, "2" );
@@ -133,8 +120,8 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addElement( "option", null, "4" );
 		$out->addElement( "option", null, "5" );
 		$out->addElement( "option", null, "6 (very bad)" );
-
 		$out->addHTML( Html::closeElement( "select" ) );
+
 		$out->addElement( "br" );
 		$out->addElement( "br" );
 		$out->addElement( "input", array( "value" => "Submit", "id" => "submit-button", "type" => "button" ) );
@@ -149,7 +136,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	 * @param OutputPage $out
 	 */
 	public function addSuggestionHtml( Suggestion $suggestion, OutputPage $out ) {
-		$suggestion_prop = $suggestion->getPropertyId();
+		$suggestion_prop = $suggestion->getPropertyId(); // TODO keine abkürzungen!
 		$suggestion_prob = $suggestion->getProbability();
 		try {
 			$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
@@ -158,7 +145,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 			return;
 		}
 		$pid = $suggestion_prop->getSerialization();
-		$out->addHTML( "<li data-property='$pid' data-label ='$plabel' data-probability='$suggestion_prob'>" );
+		$out->addHTML( "<li data-property='$pid' data-label ='$plabel' data-probability='$suggestion_prob'>" ); // TODO html::addElement
 		$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
 		$out->addHTML( "<span class='buttons'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
@@ -176,7 +163,11 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function addPropertyHtml( Snak $snak, OutputPage $out ) {
 		$pid = $snak->getPropertyId();
 		$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
-		$out->addElement( 'li', array( 'data-property' => $pid, 'data-label' => $plabel ), "$pid $plabel" );
+		$url = $this->getEntityTitle( $pid )->getFullUrl();
+		$link = Html::element( 'a', array( 'href' => $url ), "$pid $plabel");
+		$out->addHTML( Html::openElement('li', array( 'data-property' => $pid, 'data-label' => $plabel ) ) );
+		$out->addHTML( $link );
+		$out->addHTML( Html::closeElement( 'li' ) );
 	}
 
 	/**
@@ -221,6 +212,32 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 			array( "session_id" => $identifier, "entity" => $qid ) );
 		$numberOfRows = $entityResults->numRows();
 		return $numberOfRows;
+	}
+
+	/**
+	 * @param $identifier
+	 * @return Item
+	 */
+	public function getNewItemForUser( $identifier ) {
+		$qid = $this->getRequest()->getText( "next-id" );
+
+		if ( !$qid ) {
+			$qid = $this->getRandomQid();
+		}
+		$number = $this->checkDoubleEntity( $identifier, $qid );
+		$item = $this->getItem( $qid );
+		$claims = $item->getClaims();
+		if ( !$claims ) {
+			$i = 0;
+			while ( $i < 100 or !$claims or $number != 0 ) {
+				$qid = $this->getRandomQid();
+				$number = $this->checkDoubleEntity( $identifier, $qid );
+				$item = $this->getItem( $qid );
+				$claims = $item->getClaims();
+				$i = $i + 1;
+			}
+		}
+		return $item;
 	}
 }
 

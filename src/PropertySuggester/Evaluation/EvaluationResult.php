@@ -16,13 +16,16 @@ class EvaluationResult
 
 	}
 
-	public function processResult( WebRequest $request, $out, $user ) {
+	/**
+	 * @param WebRequest $request
+	 * @param string $user
+	 */
+	public function processResult( WebRequest $request, $user ) {
 
-		$result = $request->getText( 'result' ); // TODO alles was speichert in eigene klasse!
+		$result = $request->getText( 'result' );
 		if ( $result ) {
 			$resultQid = $request->getText( 'qid' );
 			$opinionAnswer = $request->getText( 'opinion' );
-			// TODO request an saveResult übergeben, da auslesen
 			$missing = $request->getText( 'missing' );
 			$overall = $request->getText( 'overall_exp' );
 
@@ -31,7 +34,15 @@ class EvaluationResult
 
 	}
 
-	public function saveResult($user, $result, $qid ,$overall, $missing,$opinionAnswer) {
+	/**
+	 * @param string $user
+	 * @param string $result
+	 * @param string $qid
+	 * @param string $overall
+	 * @param string $missing
+	 * @param string $opinionAnswer
+	 */
+	private function saveResult($user, $result, $qid ,$overall, $missing,$opinionAnswer) {
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = json_decode( $result );
@@ -39,11 +50,17 @@ class EvaluationResult
 		$properties = json_encode( $result->properties );
 		$suggestions_result = json_encode( $result->suggestions );
 
-
 		$dbw->insert( 'wbs_evaluations',
 			array(
-				'properties' => $properties, 'suggestions' => $suggestions_result, 'entity' => $qid, 'session_id' => $user,
-				'missing' => $missing, 'opinion' => $opinionAnswer  ,'overall'=> $overall ));
+				'session_id' => $user,
+				'entity' => $qid,
+				'properties' => $properties,
+				'suggestions' => $suggestions_result,
+				'missing' => $missing,
+				'opinion' => $opinionAnswer,
+				'overall'=> $overall
+			)
+		);
 	}
 
 } 
