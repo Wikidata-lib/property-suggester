@@ -11,7 +11,7 @@ use Wikibase\DataModel\Entity\Entity;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Snak\Snak;
 use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
-use PropertySuggester\EvaluationResult;
+
 
 class SpecialEvaluator extends SpecialWikibaseRepoPage
 {
@@ -52,7 +52,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		// process response
 		$old_request = $out->getRequest();
 		$user = $this->getUser()->getName();
-		$this->resultEvaluation->processResult( $old_request, $out, $user );
+		$this->resultEvaluation->processResult( $old_request,  $user );
 
 
 		// create new form
@@ -75,10 +75,14 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addHTML( Html::openElement( "form", array( "action" => $url, "method" => 'post', "id" => 'form' ) ) );
 
 		$out->addHTML( HTML::hidden( 'qid', $itemId ) );
-		$out->addElement( "input", array( "type" => "hidden", "name" => "result" ) ); // TODO hidden
+		$out->addHTML( HTML::hidden('result', '') );
 		$out->addElement( "br" );
+		$Itemurl = $this->getEntityTitle( $item->getId() )->getFullUrl();
+		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel $itemId");
+		$out->addHTML(Html::openElement("h2"));
+		$out->addHTML("Selected Random Item: " .$Itemlink);
+		$out->addHTML(Html::closeElement("h2"));
 
-		$out->addElement( 'h2', null, "Selected Random Item: $itemLabel $itemId" ); // TODO wiki-msg
 
 		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 		$claims = $item->getClaims();
@@ -136,24 +140,24 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	 * @param OutputPage $out
 	 */
 	public function addSuggestionHtml( Suggestion $suggestion, OutputPage $out ) {
-		$suggestion_prop = $suggestion->getPropertyId(); // TODO keine abkürzungen!
-		$suggestion_prob = $suggestion->getProbability();
+		$suggestionPropertyId = $suggestion->getPropertyId();
+		$suggestionProbability = $suggestion->getProbability();
 		try {
-			$plabel = $this->loadEntity( $suggestion_prop )->getEntity()->getLabel( $this->language );
+			$plabel = $this->loadEntity( $suggestionPropertyId )->getEntity()->getLabel( $this->language );
 		} catch ( \Exception $e ) {
-			$out->addHTML( "ERROR: $suggestion_prop" );
+			$out->addHTML( "ERROR: $suggestionPropertyId" );
 			return;
 		}
-		$pid = $suggestion_prop->getSerialization();
-		$out->addHTML( "<li data-property='$pid' data-label ='$plabel' data-probability='$suggestion_prob'>" ); // TODO html::addElement
-		$out->addElement( "span", null, $suggestion_prop . " " . $plabel );
+		$pid = $suggestionPropertyId->getSerialization();
+		$out->addHTML(Html::openElement("li", array("data-property"=>'$pid' ,"data-label" =>'$plabel', "data-probability"=> '$suggestionProbability' ) ));
+		$out->addElement( "span", null, $suggestionPropertyId . " " . $plabel );
 		$out->addHTML( "<span class='buttons'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button selected', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button', 'data-rating' => '-2' ) );
-		$out->addHTML( "</span>" );
-		$out->addHTML( "</li>" );
+		$out->addHTML( Html::closeElement('span') );
+		$out->addHTML( Html::closeElement('li') );
 	}
 
 	/**
