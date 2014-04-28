@@ -28,11 +28,11 @@ spl_autoload_register( function ( $className ) {
 	if ( array_key_exists( $className, $classes ) ) {
 		include_once __DIR__ . '/' . $classes[$className];
 	}
-});
+} );
 
 global $wgExtensionMessagesFiles;
 $wgExtensionMessagesFiles['PropertySuggester'] = __DIR__ . '/PropertySuggester.i18n.php';
-$wgExtensionMessagesFiles['PropertySuggesterAlias'] = __DIR__  . '/PropertySuggester.alias.php';
+$wgExtensionMessagesFiles['PropertySuggesterAlias'] = __DIR__ . '/PropertySuggester.alias.php';
 
 global $wgMessagesDirs;
 $wgMessagesDirs['PropertySuggester'] = __DIR__ . '/i18n';
@@ -52,10 +52,10 @@ $wgHooks['UnitTestsList'][] = 'PropertySuggesterHooks::onUnitTestsList';
 $wgHooks['LoadExtensionSchemaUpdates'][] = 'PropertySuggesterHooks::onCreateSchema';
 
 $wgResourceModules['ext.PropertySuggester.EntitySelector'] = array(
-		'scripts'       => array( 'modules/ext.PropertySuggester.EntitySelector.js' ),
-		'dependencies'  => array( 'jquery.wikibase.entityselector' ),
-		'localBasePath' => __DIR__,
-		'remoteExtPath' => 'PropertySuggester',
+	'scripts'       => array( 'modules/ext.PropertySuggester.EntitySelector.js' ),
+	'dependencies'  => array( 'jquery.wikibase.entityselector' ),
+	'localBasePath' => __DIR__,
+	'remoteExtPath' => 'PropertySuggester',
 );
 
 $wgResourceModules['ext.PropertySuggester'] = array(
@@ -68,5 +68,7 @@ $wgResourceModules['ext.PropertySuggester'] = array(
 
 global $wgPropertySuggesterDeprecatedIds;
 $wgPropertySuggesterDeprecatedIds = array(
-	107  // ( DEPRECATED main type )
+	107 // ( DEPRECATED main type )
 );
+global $wgPropertySuggesterMinProbability;
+$wgPropertySuggesterMinProbability = 0.05;

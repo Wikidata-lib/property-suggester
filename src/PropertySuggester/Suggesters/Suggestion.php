@@ -4,6 +4,11 @@ namespace PropertySuggester\Suggesters;
 
 use Wikibase\DataModel\Entity\PropertyId;
 
+/**
+ * Suggestion returned by a SuggesterEngine
+ *
+ * @licence GNU GPL v2+
+ */
 class Suggestion {
 
 	/**
@@ -13,6 +18,7 @@ class Suggestion {
 
 	/**
 	 * @var float
+	 * interpretation: average probability that an already existing property is used with the suggested property
 	 */
 	private $probability;
 

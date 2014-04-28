@@ -27,7 +27,7 @@ final class PropertySuggesterHooks {
 		$directoryIterator = new RecursiveDirectoryIterator( __DIR__ . '/tests/phpunit/' );
 
 		/* @var SplFileInfo $fileInfo */
-        foreach ( new RecursiveIteratorIterator( $directoryIterator ) as $fileInfo ) {
+		foreach ( new RecursiveIteratorIterator( $directoryIterator ) as $fileInfo ) {
 			if ( substr( $fileInfo->getFilename(), -8 ) === 'Test.php' ) {
 				$files[] = $fileInfo->getPathname();
 			}
@@ -42,9 +42,9 @@ final class PropertySuggesterHooks {
 	 */
 	public static function onCreateSchema( DatabaseUpdater $updater ) {
 		$updater->addExtensionTable( 'wbs_propertypairs',
-			dirname( __FILE__ ) . '/sql/create_propertypairs.sql', true );
+			__DIR__ . '/sql/create_propertypairs.sql', true );
 		$updater->addExtensionTable( 'wbs_propertypairs',
-			dirname( __FILE__ ) . '/sql/create_evaluations.sql', true );
+			__DIR__ . '/sql/create_evaluations.sql', true );
 		return true;
 	}
 
