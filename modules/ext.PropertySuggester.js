@@ -84,14 +84,13 @@
         var overall = $('select[name = overall]').val()[0];
         var opinion = $('textarea[name = opinion]').val();
 
-
         var question = {"overall": overall,
             "opinion": opinion,
             "missing": missingProperties};
         return question;
     }
 
-    function submitJson(entry_id, properties, ratings,missingProperties) {
+    function submitJson(entry_id, properties, ratings, missingProperties) {
         var question = getQuestionResults(missingProperties);
         console.log(question);
         var evaluations = {

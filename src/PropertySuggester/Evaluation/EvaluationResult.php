@@ -27,7 +27,7 @@ class EvaluationResult
 			$resultQid = $request->getText( 'qid' );
 			$opinionAnswer = $request->getText( 'opinion' );
 
-			$overall = $request->getText( 'overall_exp' );
+			$overall = $request->getText( 'overall' );
 
 			$this->saveResult($user, $result, $resultQid , $overall,$opinionAnswer);
 		}
@@ -46,7 +46,7 @@ class EvaluationResult
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = json_decode( $result );
-		$missing = $result->questions->missing;
+		$missing = json_encode($result->questions->missing);
 		$properties = json_encode( $result->properties );
 		$suggestions_result = json_encode( $result->suggestions );
 
