@@ -71,16 +71,17 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$itemId = $item->getId()->getSerialization();
 		$suggestions = $this->suggester->suggestByItem( $item, 7, 0.0 );
 		$url = $out->getRequest()->getRequestURL();
-
+		$description = $item->getDescription($this->language);
 		$out->addHTML( Html::openElement( "form", array( "action" => $url, "method" => 'post', "id" => 'form' ) ) );
 
 		$out->addHTML( HTML::hidden( 'qid', $itemId ) );
 		$out->addHTML( HTML::hidden('result', '') );
 		$out->addElement( "br" );
 		$Itemurl = $this->getEntityTitle( $item->getId() )->getFullUrl();
-		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel $itemId");
+		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel $itemId ");
+
 		$out->addHTML(Html::openElement("h2"));
-		$out->addHTML("Selected Random Item: " .$Itemlink);
+		$out->addHTML("Selected Random Item: " .$Itemlink ."($description)" );
 		$out->addHTML(Html::closeElement("h2"));
 
 
@@ -101,9 +102,11 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Which properties were missing?" );
+
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addElement( "input", array( "name" => "property-chooser", "class" => "question" ) );
-
+		$out->addElement("i", array( 'class' => 'fa fa-plus' ) );
+		$out->addElement("ul", array("id"=>"missing-properties"));
 		$out->addElement( "br" );
 
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
@@ -116,7 +119,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Overall experience" );
 		$out->addHTML( Html::closeElement( "span" ) );
-		$out->addHTML( Html::openElement( "select", array( "name" => "overall_exp", "class" => "question" ) ) );
+		$out->addHTML( Html::openElement( "select", array( "name" => "overall", "class" => "question" ) ) );
 		$out->addElement( "option", null, "" );
 		$out->addElement( "option", null, "1 (very good)" );
 		$out->addElement( "option", null, "2" );
@@ -149,8 +152,8 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 			return;
 		}
 		$pid = $suggestionPropertyId->getSerialization();
-		$out->addHTML(Html::openElement("li", array("data-property"=>'$pid' ,"data-label" =>'$plabel', "data-probability"=> '$suggestionProbability' ) ));
-		$out->addElement( "span", null, $suggestionPropertyId . " " . $plabel );
+		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
+		$out->addElement( "span", null, "$suggestionPropertyId $plabel" );
 		$out->addHTML( "<span class='buttons'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button selected', 'data-rating' => '0' ) );

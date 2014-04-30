@@ -26,10 +26,10 @@ class EvaluationResult
 		if ( $result ) {
 			$resultQid = $request->getText( 'qid' );
 			$opinionAnswer = $request->getText( 'opinion' );
-			$missing = $request->getText( 'missing' );
+
 			$overall = $request->getText( 'overall_exp' );
 
-			$this->saveResult($user, $result, $resultQid , $overall, $missing,$opinionAnswer);
+			$this->saveResult($user, $result, $resultQid , $overall,$opinionAnswer);
 		}
 
 	}
@@ -42,7 +42,7 @@ class EvaluationResult
 	 * @param string $missing
 	 * @param string $opinionAnswer
 	 */
-	private function saveResult($user, $result, $qid ,$overall, $missing,$opinionAnswer) {
+	private function saveResult($user, $result, $qid ,$overall, $opinionAnswer) {
 
 		$dbw = wfGetDB( DB_MASTER );
 		$result = json_decode( $result );
