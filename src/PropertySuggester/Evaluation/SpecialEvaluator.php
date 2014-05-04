@@ -156,9 +156,9 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addElement( "span", null, "$suggestionPropertyId $plabel" );
 		$out->addHTML( "<span class='buttons'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button selected', 'data-rating' => '0' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button ', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button', 'data-rating' => '-2' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button selected', 'data-rating' => '-2' ) );
 		$out->addHTML( Html::closeElement('span') );
 		$out->addHTML( Html::closeElement('li') );
 	}
