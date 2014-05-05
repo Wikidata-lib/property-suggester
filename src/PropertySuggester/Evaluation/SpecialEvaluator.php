@@ -17,6 +17,10 @@ use Wikibase\Repo\Specials\SpecialWikibaseRepoPage;
 class SpecialEvaluator extends SpecialWikibaseRepoPage
 {
 
+	/**
+	 * @var LoadBalancer
+	 */
+	protected $lb;
 
 	/**
 	 * @var SuggesterEngine
@@ -34,9 +38,9 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function __construct() {
 		parent::__construct( 'PropertySuggester', '' );
 		$this->language = $this->getContext()->getLanguage()->getCode();
-		$this->resultEvaluation = new EvaluationResult();
-		$lb = wfGetLB( DB_SLAVE );
-		$this->suggester = new SimpleSuggester( $lb );
+		$this->lb = wfGetLB( DB_SLAVE );
+		$this->resultEvaluation = new EvaluationResult($this->lb);
+		$this->suggester = new SimpleSuggester( $this->lb );
 		global $wgPropertySuggesterDeprecatedIds;
 		$this->suggester->setDeprecatedPropertyIds( $wgPropertySuggesterDeprecatedIds );
 	}
@@ -106,7 +110,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addElement( "input", array( "name" => "property-chooser", "class" => "question" ) );
-		$out->addElement("i", array( 'class' => 'fa fa-plus' ) );
+		$out->addElement("i", array( 'class' => 'fa fa-plus', 'id' => 'addButton' ) );
 		$out->addElement("ul", array("id"=>"missing-properties"));
 		$out->addElement( "br" );
 
@@ -156,10 +160,10 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
 		$out->addElement( "span", null, "$suggestionPropertyId $plabel" );
 		$out->addHTML( "<span class='buttons'>" );
-		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o button smile_button', 'data-rating' => '1' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o button meh_button ', 'data-rating' => '0' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o button sad_button', 'data-rating' => '-1' ) );
-		$out->addElement( 'i', array( 'class' => 'fa fa-question button question_button selected', 'data-rating' => '-2' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o evaluation-button smile_button', 'data-rating' => '1' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o evaluation-button meh_button ', 'data-rating' => '0' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o evaluation-button sad_button', 'data-rating' => '-1' ) );
+		$out->addElement( 'i', array( 'class' => 'fa fa-question evaluation-button question_button selected', 'data-rating' => '-2' ) );
 		$out->addHTML( Html::closeElement('span') );
 		$out->addHTML( Html::closeElement('li') );
 	}
@@ -192,17 +196,19 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	 * @return string
 	 */
 	public function getRandomQid() {
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = $this->lb->getConnection( DB_SLAVE );
 		$res = $dbr->select(
 			'page',
 			array( 'page_title' ), //vars
-			array( "page_title like 'Q%'" ), //cond
+			array( 'page_content_model' => 'wikibase-item' ), //cond
 			__METHOD__,
 			array(
 				'ORDER BY' => 'rand()',
 				'LIMIT' => 1
 			)
 		);
+		$this->lb->reuseConnection( $dbr );
+
 		$qid = $res->fetchObject()->page_title;
 		return $qid;
 	}
@@ -210,16 +216,18 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	/**
 	 * @param $identifier
 	 * @param $qid
-	 * @return int
+	 * @return bool
 	 */
-	public function checkDoubleEntity( $identifier, $qid ) {
-		$dbr = wfGetDB( DB_SLAVE );
+	public function wasAlreadyEvaluatedByUser( $identifier, $qid ) {
+		$dbr = $this->lb->getConnection( DB_SLAVE );
 		$entityResults = $dbr->select(
 			'wbs_evaluations',
 			array( 'entity' ),
-			array( "session_id" => $identifier, "entity" => $qid ) );
+			array( "session_id" => $identifier, "entity" => $qid )
+		);
+		$this->lb->reuseConnection( $dbr );
 		$numberOfRows = $entityResults->numRows();
-		return $numberOfRows;
+		return $numberOfRows > 0;
 	}
 
 	/**
@@ -229,20 +237,23 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function getNewItemForUser( $identifier ) {
 		$qid = $this->getRequest()->getText( "next-id" );
 
-		if ( !$qid ) {
-			$qid = $this->getRandomQid();
+		if ( $qid ) {
+			$item = $this->getItem( $qid );
+			return $item;
 		}
-		$number = $this->checkDoubleEntity( $identifier, $qid );
-		$item = $this->getItem( $qid );
-		$claims = $item->getClaims();
-		if ( !$claims ) {
-			$i = 0;
-			while ( $i < 100 or !$claims or $number != 0 ) {
-				$qid = $this->getRandomQid();
-				$number = $this->checkDoubleEntity( $identifier, $qid );
-				$item = $this->getItem( $qid );
-				$claims = $item->getClaims();
-				$i = $i + 1;
+
+		$item = null;
+		for( $i=0; $i<100; $i++ ) {
+			$qid = $this->getRandomQid();
+			$wasEvaluated = $this->wasAlreadyEvaluatedByUser( $identifier, $qid );
+			try {
+			$item = $this->getItem( $qid );
+			} catch (\Exception $e) {
+				var_dump( $qid);
+			}
+			$claims = $item->getClaims();
+			if ( !$wasEvaluated && count($claims) > 0 ) {
+				break;
 			}
 		}
 		return $item;

@@ -1,19 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: virginia.weidhaas
- * Date: 4/23/14
- * Time: 3:25 PM
- */
-
-namespace PropertySuggester;
+namespace PropertySuggester\Evaluation;
 
 use WebRequest;
 
 class EvaluationResult
 {
-	public function __construct() {
+	/**
+	 * @var \LoadBalancer
+	 */
+	private $lb;
 
+	public function __construct( \LoadBalancer $lb ) {
+		$this->lb = $lb;
 	}
 
 	/**
@@ -26,10 +24,8 @@ class EvaluationResult
 		if ( $result ) {
 			$resultQid = $request->getText( 'qid' );
 			$opinionAnswer = $request->getText( 'opinion' );
-
-			$overall = $request->getText( 'overall' );
-
-			$this->saveResult($user, $result, $resultQid , $overall,$opinionAnswer);
+			$overall = $request->getText( 'overall' )[0];
+			$this->saveResult( $user, $result, $resultQid, $overall, $opinionAnswer );
 		}
 
 	}
@@ -39,14 +35,14 @@ class EvaluationResult
 	 * @param string $result
 	 * @param string $qid
 	 * @param string $overall
-	 * @param string $missing
 	 * @param string $opinionAnswer
+	 * @internal param string $missing
 	 */
-	private function saveResult($user, $result, $qid ,$overall, $opinionAnswer) {
+	private function saveResult( $user, $result, $qid, $overall, $opinionAnswer ) {
 
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->lb->getConnection( DB_MASTER );
 		$result = json_decode( $result );
-		$missing = json_encode($result->questions->missing);
+		$missing = json_encode( $result->questions->missing );
 		$properties = json_encode( $result->properties );
 		$suggestions_result = json_encode( $result->suggestions );
 
@@ -58,9 +54,10 @@ class EvaluationResult
 				'suggestions' => $suggestions_result,
 				'missing' => $missing,
 				'opinion' => $opinionAnswer,
-				'overall'=> $overall
+				'overall' => $overall
 			)
 		);
+		$this->lb->reuseConnection( $dbw );
 	}
 
 } 
