@@ -1,7 +1,8 @@
 <?php
 
-namespace PropertySuggester;
+namespace PropertySuggester\Evaluation;
 
+use LoadBalancer;
 use Html;
 use OutputPage;
 use PropertySuggester\Suggesters\SimpleSuggester;
