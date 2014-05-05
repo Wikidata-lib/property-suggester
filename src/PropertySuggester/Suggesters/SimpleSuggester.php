@@ -7,6 +7,7 @@ use InvalidArgumentException;
 use Wikibase\DataModel\Entity\Item;
 use Wikibase\DataModel\Entity\PropertyId;
 use ResultWrapper;
+use Wikibase\DataModel\Snak\Snak;
 
 /**
  * a Suggester implementation that creates suggestion via MySQL
@@ -44,28 +45,31 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @param int[] $propertyIds
 	 * @param int $limit
 	 * @param float $minProbability
-	 * @throws \InvalidArgumentException
+	 * @throws InvalidArgumentException
 	 * @return Suggestion[]
 	 */
 	protected function getSuggestions( array $propertyIds, $limit, $minProbability ) {
-		if ( !$propertyIds ) {
-			return array();
-		}
 		if ( !is_int( $limit ) ) {
 			throw new InvalidArgumentException('$limit must be int!');
 		}
 		if ( !is_float( $minProbability ) ) {
 			throw new InvalidArgumentException('$minProbability must be float!');
 		}
+		if ( !$propertyIds ) {
+			return array();
+		}
 		$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
 		$count = count( $propertyIds );
+		$context = 'item'; // only 'item' is supported at the moment
 
 		$dbr = $this->lb->getConnection( DB_SLAVE );
 		$res = $dbr->select(
 			'wbs_propertypairs',
 			array( 'pid' => 'pid2', 'prob' => "sum(probability)/$count" ),
 			array( 'pid1 IN (' . $dbr->makeList( $propertyIds ) . ')',
-				   'pid2 NOT IN (' . $dbr->makeList( $excludedIds ) . ')' ),
+				   'qid1' => null,
+				   'pid2 NOT IN (' . $dbr->makeList( $excludedIds ) . ')',
+				   'context' => $context ),
 			__METHOD__,
 			array(
 				'GROUP BY' => 'pid2',
@@ -88,10 +92,8 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @return Suggestion[]
 	 */
 	public function suggestByPropertyIds( array $propertyIds, $limit, $minProbability ) {
-		$numericIds = array();
-		foreach ( $propertyIds as $id ) {
-			$numericIds[] = $id->getNumericId();
-		}
+		$numericIds = array_map( array( $this, 'getNumericIdFromPropertyId' ), $propertyIds);
+
 		return $this->getSuggestions( $numericIds, $limit, $minProbability );
 	}
 
@@ -105,10 +107,7 @@ class SimpleSuggester implements SuggesterEngine {
 	 */
 	public function suggestByItem( Item $item, $limit, $minProbability ) {
 		$snaks = $item->getAllSnaks();
-		$numericIds = array();
-		foreach ( $snaks as $snak ) {
-			$numericIds[] = $snak->getPropertyId()->getNumericId();
-		}
+		$numericIds = array_map( array( $this, 'getNumericIdFromSnak' ), $snaks);
 		return $this->getSuggestions( $numericIds, $limit, $minProbability );
 	}
 
@@ -126,6 +125,14 @@ class SimpleSuggester implements SuggesterEngine {
 			$resultArray[] = $suggestion;
 		}
 		return $resultArray;
+	}
+
+	private function getNumericIdFromSnak( Snak $snak ) {
+		return $snak->getPropertyId()->getNumericId();
+	}
+
+	private function getNumericIdFromPropertyId( PropertyId $propertyId ) {
+		return $propertyId->getNumericId();
 	}
 
 }

@@ -7,8 +7,8 @@ use LoadBalancer;
 use PropertySuggester\UpdateTable\Importer\BasicImporter;
 use PropertySuggester\UpdateTable\Importer\Importer;
 use PropertySuggester\UpdateTable\Importer\MySQLImporter;
-use PropertySuggester\UpdateTable\Importer\PostgresImporter;
 use PropertySuggester\UpdateTable\ImportContext;
+use UnexpectedValueException;
 
 
 $basePath = getenv( 'MW_INSTALL_PATH' ) !== false ? getenv( 'MW_INSTALL_PATH' ) : __DIR__ . '/../../..';
@@ -37,11 +37,12 @@ class UpdateTable extends Maintenance {
 		if ( substr( $this->getOption( 'file' ), 0, 2 ) === "--" ) {
 			$this->error( "The --file option requires a file as an argument.\n", true );
 		}
-		$fullPath = realpath( $this->getOption( 'file' ) );
+		$path = $this->getOption( 'file' );
+		$fullPath = realpath( $path );
 		$fullPath = str_replace( '\\', '/', $fullPath );
 
 		if ( !file_exists( $fullPath ) ) {
-			$this->error( "Cant find $fullPath \n", true );
+			$this->error( "Cant find $path \n", true );
 		}
 
 		$useInsert = $this->getOption( 'use-insert' );
@@ -59,7 +60,13 @@ class UpdateTable extends Maintenance {
 
 		$importContext = $this->createImportContext( $lb, $tableName, $fullPath );
 		$insertionStrategy = $this->createImportStrategy( $useInsert );
-		$success = $insertionStrategy->importFromCsvFileToDb( $importContext );
+
+		try {
+			$success = $insertionStrategy->importFromCsvFileToDb( $importContext );
+		} catch (UnexpectedValueException $e) {
+			$this->error( "Import failed: " . $e->getMessage() );
+			exit;
+		}
 
 		if ( !$success ) {
 			$this->error( "Failed to run import to db" );
@@ -74,11 +81,9 @@ class UpdateTable extends Maintenance {
 	 * @return Importer
 	 */
 	function createImportStrategy( $useInsert ) {
-		global $wgDbType;
-		if ( $wgDbType === 'mysql' and !$useInsert ) {
+		global $wgDBtype;
+		if ( $wgDBtype === 'mysql' and !$useInsert ) {
 			return new MySQLImporter();
-		} elseif ( $wgDbType === 'postgres' and !$useInsert ) {
-			return new PostgresImporter();
 		} else {
 			return new BasicImporter();
 		}
@@ -95,6 +100,7 @@ class UpdateTable extends Maintenance {
 		$importContext->setLb( $lb );
 		$importContext->setTargetTableName( $tableName );
 		$importContext->setCsvFilePath( $wholePath );
+		$importContext->setCsvDelimiter( ',' );
 		return $importContext;
 	}
 

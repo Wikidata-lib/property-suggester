@@ -9,6 +9,8 @@ use PropertySuggester\Suggesters\SimpleSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
 use Wikibase\DataModel\Entity\Property;
 use Wikibase\EntityLookup;
+use Wikibase\EntityTitleLookup;
+use Wikibase\Repo\WikibaseRepo;
 use Wikibase\StoreFactory;
 use Wikibase\TermIndex;
 use Wikibase\Utils;
@@ -26,6 +28,11 @@ class GetSuggestions extends ApiBase {
 	private $entityLookup;
 
 	/**
+	 * @var EntityTitleLookup
+	 */
+	private $entityTitleLookup;
+
+	/**
 	 * @var SuggesterEngine
 	 */
 	private $suggester;
@@ -36,92 +43,62 @@ class GetSuggestions extends ApiBase {
 	private $termIndex;
 
 	/**
-	 * @var int
+	 * @var SuggesterParamsParser
 	 */
-	private $defaultSuggestionSearchLimit;
-
-	/**
-	 * @var float
-	 */
-	private $defaultMinProbability;
+	private $paramsParser;
 
 	public function __construct( ApiMain $main, $name, $prefix = '' ) {
 		parent::__construct( $main, $name, $prefix );
-		$this->entityLookup = StoreFactory::getStore( 'sqlstore' )->getEntityLookup();
-		$this->termIndex = StoreFactory::getStore( 'sqlstore' )->getTermIndex();
-		$this->suggester = new SimpleSuggester( wfGetLB( DB_SLAVE ) );
-		$this->defaultSuggestionSearchLimit = 500;
-
-		global $wgPropertySuggesterMinProbability;
-		$this->defaultMinProbability = $wgPropertySuggesterMinProbability;
-
 		global $wgPropertySuggesterDeprecatedIds;
+		global $wgPropertySuggesterMinProbability;
+
+		$this->termIndex = StoreFactory::getStore( 'sqlstore' )->getTermIndex();
+		$this->entityLookup = StoreFactory::getStore( 'sqlstore' )->getEntityLookup();
+		$this->entityTitleLookup = WikibaseRepo::getDefaultInstance()->getEntityTitleLookup();
+
+		$this->suggester = new SimpleSuggester( wfGetLB( DB_SLAVE ) );
+
 		$this->suggester->setDeprecatedPropertyIds( $wgPropertySuggesterDeprecatedIds );
+
+		$this->paramsParser = new SuggesterParamsParser( 500, $wgPropertySuggesterMinProbability );
 	}
 
 	/**
 	 * @see ApiBase::execute()
 	 */
 	public function execute() {
-		wfProfileIn( __METHOD__ );
-		$params = $this->extractRequestParams();
-
-		// parse params
-		if ( !( $params['entity'] XOR $params['properties'] ) ) {
-			wfProfileOut( __METHOD__ );
-			$this->dieUsage( 'provide either entity id parameter \'entity\' or a list of properties \'properties\'', 'param-missing' );
-		}
-
-		// The entityselector doesn't allow a search for '' so '*' gets mapped to ''
-		if ( $params['search'] !== '*' ) {
-			$search = trim( $params['search'] );
-		} else {
-			$search = '';
-		}
-
-		$language = $params['language'];
-		$resultSize = $params['continue'] + $params['limit'];
-
-		if ( $search ) {
-			// the results matching '$search' can be at the bottom of the list
-			// however very low ranked properties are not interesting and can
-			// still be found during the merge with search result later.
-			$suggesterLimit = $this->defaultSuggestionSearchLimit;
-			$minProbability = 0.0;
-		} else {
-			$suggesterLimit = $resultSize;
-			$minProbability = $this->defaultMinProbability;
-		}
+		$extracted = $this->extractRequestParams();
+		$params = $this->paramsParser->parseAndValidate( $extracted );
 
 		$suggestionGenerator = new SuggestionGenerator( $this->entityLookup, $this->termIndex, $this->suggester );
 
-		if ( $params["entity"] !== null ) {
-			$suggestions = $suggestionGenerator->generateSuggestionsByItem( $params["entity"], $suggesterLimit, $minProbability );
+		if ( $params->entity !== null ) {
+			$suggestions = $suggestionGenerator->generateSuggestionsByItem( $params->entity, $params->suggesterLimit, $params->minProbability );
 		} else {
-			$suggestions = $suggestionGenerator->generateSuggestionsByPropertyList( $params['properties'], $suggesterLimit, $minProbability );
+			$suggestions = $suggestionGenerator->generateSuggestionsByPropertyList( $params->properties, $params->suggesterLimit, $params->minProbability );
 		}
-		$suggestions = $suggestionGenerator->filterSuggestions( $suggestions, $search, $language, $resultSize );
+		$suggestions = $suggestionGenerator->filterSuggestions( $suggestions, $params->search, $params->language, $params->resultSize );
 
 		// Build result Array
-		$resultBuilder = new ResultBuilder( $this->getResult(), $search );
-		$entries = $resultBuilder->createJSON( $suggestions, $language, $search );
+		$resultBuilder = new ResultBuilder( $this->getResult(), $this->termIndex, $this->entityTitleLookup, $params->search );
+		$entries = $resultBuilder->createJSON( $suggestions, $params->language, $params->search );
 
 		// merge with search result if possible and necessary
-		if ( count( $entries ) < $resultSize && $search !== '' ) {
-			$searchResult = $this->querySearchApi( $resultSize, $search, $language );
-			$entries = $resultBuilder->mergeWithTraditionalSearchResults( $entries, $searchResult, $resultSize );
+		if ( count( $entries ) < $params->resultSize && $params->search !== '' ) {
+			$searchResult = $this->querySearchApi( $params->resultSize, $params->search, $params->language );
+			$entries = $resultBuilder->mergeWithTraditionalSearchResults( $entries, $searchResult, $params->resultSize );
 		}
 
 		// Define Result
-		$slicedEntries = array_slice( $entries, $params['continue'], $params['limit'] );
+		$slicedEntries = array_slice( $entries, $params->continue, $params->limit );
 		$this->getResult()->setIndexedTagName( $slicedEntries, 'search' );
 		$this->getResult()->addValue( null, 'search', $slicedEntries );
 
 		$this->getResult()->addValue( null, 'success', 1 );
-		if ( count( $entries ) >= $resultSize ) {
-			$this->getResult()->addValue( null, 'search-continue', $resultSize );
+		if ( count( $entries ) >= $params->resultSize ) {
+			$this->getResult()->addValue( null, 'search-continue', $params->resultSize );
 		}
-		$this->getResult()->addValue( 'searchinfo', 'search', $search );
+		$this->getResult()->addValue( 'searchinfo', 'search', $params->search );
 	}
 
 
@@ -170,14 +147,7 @@ class GetSuggestions extends ApiBase {
 				ApiBase::PARAM_MIN => 0,
 				ApiBase::PARAM_RANGE_ENFORCE => true,
 			),
-			'continue' => array(
-				ApiBase::PARAM_TYPE => 'limit',
-				ApiBase::PARAM_DFLT => 0,
-				ApiBase::PARAM_MAX => ApiBase::LIMIT_SML1,
-				ApiBase::PARAM_MAX2 => ApiBase::LIMIT_SML2,
-				ApiBase::PARAM_MIN => 0,
-				ApiBase::PARAM_RANGE_ENFORCE => true,
-			),
+			'continue' => null,
 			'language' => array(
 				ApiBase::PARAM_TYPE => Utils::getLanguageCodes(),
 				ApiBase::PARAM_DFLT => $this->getContext()->getLanguage()->getCode(),
@@ -193,14 +163,14 @@ class GetSuggestions extends ApiBase {
 	 * @see ApiBase::getParamDescription()
 	 */
 	public function getParamDescription() {
-		return array_merge( parent::getParamDescription(), array(
+		return array(
 			'entity' => 'Suggest attributes for given entity',
 			'properties' => 'Identifier for the site on which the corresponding page resides',
 			'size' => 'Specify number of suggestions to be returned',
 			'language' => 'language for result',
 			'limit' => 'Maximal number of results',
 			'continue' => 'Offset where to continue a search'
-		) );
+		);
 	}
 
 	/**
@@ -215,7 +185,7 @@ class GetSuggestions extends ApiBase {
 	/**
 	 * @see ApiBase::getExamples()
 	 */
-	protected function getExamples() {
+	public function getExamples() {
 		return array(
 			'api.php?action=wbsgetsuggestions&entity=Q4'
 			=> 'Get suggestions for entity 4',

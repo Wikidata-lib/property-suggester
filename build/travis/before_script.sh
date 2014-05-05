@@ -4,6 +4,8 @@ set -x
 
 originalDirectory=$(pwd)
 
+composer self-update
+
 cd ..
 
 # checkout mediawiki
@@ -31,7 +33,10 @@ cd extensions
 
 cp -r $originalDirectory PropertySuggester
 
-cd Wikibase
+cd PropertySuggester
+composer install --dev --no-interaction --prefer-source
+
+cd ../Wikibase
 composer install --prefer-source
 
 cd ../..

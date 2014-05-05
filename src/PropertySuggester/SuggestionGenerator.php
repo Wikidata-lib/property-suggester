@@ -9,6 +9,7 @@ use Wikibase\DataModel\Entity\Property;
 use Wikibase\DataModel\Entity\PropertyId;
 use Wikibase\EntityLookup;
 use Wikibase\TermIndex;
+use InvalidArgumentException;
 
 /**
  * API module helper to generate property suggestions.
@@ -43,11 +44,15 @@ class SuggestionGenerator {
 	 * @param string $item - An item id
 	 * @param int $limit
 	 * @param float $minProbability
+	 * @throws InvalidArgumentException
 	 * @return array
 	 */
 	public function generateSuggestionsByItem( $item, $limit, $minProbability ) {
 		$id = new  ItemId( $item );
 		$item = $this->entityLookup->getEntity( $id );
+		if( $item == null ){
+			throw new InvalidArgumentException( 'Item ' . $id . ' could not be found' );
+		}
 		$suggestions = $this->suggester->suggestByItem( $item, $limit, $minProbability );
 		return $suggestions;
 	}
@@ -91,19 +96,19 @@ class SuggestionGenerator {
 	 */
 	public function filterSuggestions( array $suggestions, $search, $language, $resultSize ) {
 		if ( !$search ) {
-			return $suggestions;
+			return array_slice( $suggestions, 0, $resultSize );
 		}
 		$ids = $this->getMatchingIDs( $search, $language );
 
-		$id_map = array();
+		$id_set = array();
 		foreach ( $ids as $id ) {
-			$id_map[$id->getNumericId()] = true;
+			$id_set[$id->getNumericId()] = true;
 		}
 
 		$matching_suggestions = array();
 		$count = 0;
 		foreach ( $suggestions as $suggestion ) {
-			if ( array_key_exists( $suggestion->getPropertyId()->getNumericId(), $id_map ) ) {
+			if ( array_key_exists( $suggestion->getPropertyId()->getNumericId(), $id_set ) ) {
 				$matching_suggestions[] = $suggestion;
 				if ( ++$count == $resultSize ) {
 					break;

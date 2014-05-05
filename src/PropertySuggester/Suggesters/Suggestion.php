@@ -18,7 +18,7 @@ class Suggestion {
 
 	/**
 	 * @var float
-	 * interpretation: average probability that an already existing property is used with the suggested property
+	 * average probability that an already existing property is used with the suggested property
 	 */
 	private $probability;
 
@@ -39,6 +39,7 @@ class Suggestion {
 	}
 
 	/**
+	 * average probability that an already existing property is used with the suggested property
 	 * @return float
 	 */
 	public function getProbability() {

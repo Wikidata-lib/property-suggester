@@ -12,9 +12,10 @@ use Wikibase\DataModel\Snak\PropertySomeValueSnak;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\EntityLookup;
 use Wikibase\TermIndex;
+use InvalidArgumentException;
 
 /**
- * @covers PropertySuggester\GetSuggestionHelper
+ * @covers PropertySuggester\SuggestionGenerator
  * @group PropertySuggester
  * @group API
  * @group medium
@@ -74,7 +75,14 @@ class SuggestionGeneratorTest extends MediaWikiTestCase {
 		$result = $this->suggestionGenerator->filterSuggestions( $suggestions, 'foo', 'en', $resultSize );
 
 		$this->assertEquals( array( $suggestions[0], $suggestions[2] ), $result );
+	}
 
+	public function testFilterSuggestionsWithoutSearch() {
+		$resultSize = 2;
+
+		$result = $this->suggestionGenerator->filterSuggestions( array( 1, 2, 3, 4 ), '', 'en', $resultSize );
+
+		$this->assertEquals( array( 1, 2 ), $result );
 	}
 
 	public function testGenerateSuggestionsWithPropertyList() {
@@ -113,6 +121,20 @@ class SuggestionGeneratorTest extends MediaWikiTestCase {
 
 		$result3 = $this->suggestionGenerator->generateSuggestionsByItem( 'Q42', 100, 0.0 );
 		$this->assertEquals( $result3, array( 'foo' ) );
+	}
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testGenerateSuggestionsWithNonExistentItem() {
+		$itemId = new ItemId( 'Q41' );
+
+		$this->lookup->expects( $this->once() )
+			->method( 'getEntity' )
+			->with( $this->equalTo( $itemId ) )
+			->will( $this->returnValue( null ) );
+
+		$this->suggestionGenerator->generateSuggestionsByItem( 'Q41', 100, 0.0 );
 	}
 
 }
