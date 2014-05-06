@@ -24,7 +24,8 @@ class EvaluationResult
 		if ( $result ) {
 			$resultQid = $request->getText( 'qid' );
 			$opinionAnswer = $request->getText( 'opinion' );
-			$overall = $request->getText( 'overall' )[0];
+			$overallText = $request->getText( 'overall' );
+			$overall = $overallText[0];
 			$this->saveResult( $user, $result, $resultQid, $overall, $opinionAnswer );
 		}
 
