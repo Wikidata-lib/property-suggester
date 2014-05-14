@@ -156,9 +156,14 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 			return;
 		}
 		$pid = $suggestionPropertyId->getSerialization();
+		$wikidata_url = "http://www.wikidata.org/wiki/Property:".$suggestionPropertyId;
+		$link = Html::element( 'a', array( 'href' => $wikidata_url ), "$suggestionPropertyId $plabel");
+
 		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
-		$out->addElement( "span", null, "$suggestionPropertyId $plabel" );
-		$out->addHTML( "<span class='evaluation-box'>" );
+		$out->addHTML(Html::openElement("span"));
+		$out->addHTML($link);
+		$out->addHTML(Html::closeElement("span"));
+		$out->addHTML(Html::openElement("span",array( "class" =>'evaluation-box' )));
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o evaluation-button smile_button', 'data-rating' => '1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o evaluation-button meh_button ', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o evaluation-button sad_button', 'data-rating' => '-1' ) );
@@ -174,8 +179,9 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function addPropertyHtml( Snak $snak, OutputPage $out ) {
 		$pid = $snak->getPropertyId();
 		$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
+		$url_wikidata= "http://www.wikidata.org/wiki/Property:".$pid;
 		$url = $this->getEntityTitle( $pid )->getFullUrl();
-		$link = Html::element( 'a', array( 'href' => $url ), "$pid $plabel");
+		$link = Html::element( 'a', array( 'href' => $url_wikidata ), "$pid $plabel");
 		$out->addHTML( Html::openElement('li', array( 'data-property' => $pid, 'data-label' => $plabel ) ) );
 		$out->addHTML( $link );
 		$out->addHTML( Html::closeElement( 'li' ) );
