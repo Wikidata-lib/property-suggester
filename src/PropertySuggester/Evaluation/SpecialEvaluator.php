@@ -161,7 +161,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		}
 		$pid = $suggestionPropertyId->getSerialization();
 		$wikidata_url = "http://www.wikidata.org/wiki/Property:".$suggestionPropertyId;
-		$link = Html::element( 'a', array( 'href' => $wikidata_url ), "$suggestionPropertyId $plabel");
+		$link = Html::element( 'a', array( 'href' => $wikidata_url ), "$plabel");
 
 		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
 		$out->addHTML(Html::openElement("span"));
