@@ -1,17 +1,30 @@
 
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 470px;
+}
+
+.evaluation-text {
+    float: left;
+}
+
 .evaluation-button {
     font-size: 200%;
     color: #d3d3d3;
     cursor: pointer;
     margin: 3px;
-    vertical-align:middle;
+    vertical-align: middle;
 }
 .evaluation-box{
-    margin-left: 10%;
+    margin-top: 5px;
     float: right;
 }
 .suggestion_evaluation {
-    width: 432px;
+    width: 600px;
+    padding-bottom: 1%;
 }
 
 .suggestion_evaluation .buttons {
@@ -70,7 +83,7 @@
 
 .description {
     float: left;
-    width: 236px;
+    min-width: 236px;
 }
 .question.textfield{
     resize: none;
