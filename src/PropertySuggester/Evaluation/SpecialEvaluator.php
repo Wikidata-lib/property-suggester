@@ -67,7 +67,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		// TODO wiki-msg
 		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/> You get a random item and are able to see all its properties.
 		 In the next section, you get ranked suggestions of the entity suggester.  <br/> Please mark those as appropriate or good suggestions (green smiling emoticon) or  inapproriate
-		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is or you cannot state if it is good or bad, use the orange emoticon in the middle.
+		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is, choose the question mark. </br> If you cannot state if it is good or bad, use the orange emoticon in the middle.
 		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. In the overall rating, please rate the overall quality of the entity suggester (not e.g. the layout of this page)." );
 
 		//$out->addWikiMsg( 'propertysuggester-intro' );
@@ -104,7 +104,6 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 			$this->addSuggestionHtml( $suggestion, $out );
 		}
 		$out->addHTML( Html::closeElement( "ul" ) );
-
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
 		$out->addHTML( "Which properties were missing?" );
 
@@ -159,7 +158,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$pid = $suggestionPropertyId->getSerialization();
 		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
 		$out->addElement( "span", null, "$suggestionPropertyId $plabel" );
-		$out->addHTML( "<span class='buttons'>" );
+		$out->addHTML( "<span class='evaluation-box'>" );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o evaluation-button smile_button', 'data-rating' => '1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o evaluation-button meh_button ', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o evaluation-button sad_button', 'data-rating' => '-1' ) );
