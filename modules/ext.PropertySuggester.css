@@ -1,7 +1,7 @@
 
 .evaluation-button {
     font-size: 200%;
-    color: grey;
+    color: #d3d3d3;
     cursor: pointer;
     margin: 3px;
     vertical-align:middle;
@@ -32,6 +32,9 @@
 .smile_button.selected {
     color: green;
 }
+.smile_button:hover {
+    color: green;
+}
 
 .sad_button {
 }
@@ -39,11 +42,21 @@
 .sad_button.selected {
     color: red;
 }
+.sad_button:hover {
+    color: red;
+}
 
 .question_button.selected {
-    color: #add8e6;
+    color: blue;
 }
+.question_button:hover {
+    color: blue;
+}
+
 .meh_button.selected{
+    color: orange;
+}
+.meh_button:hover{
     color: orange;
 }
 
