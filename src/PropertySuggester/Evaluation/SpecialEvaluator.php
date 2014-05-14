@@ -39,7 +39,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		parent::__construct( 'PropertySuggester', '' );
 		$this->language = $this->getContext()->getLanguage()->getCode();
 		$this->lb = wfGetLB( DB_SLAVE );
-		$this->resultEvaluation = new EvaluationResult($this->lb);
+		$this->resultEvaluation = new EvaluationResult( $this->lb );
 		$this->suggester = new SimpleSuggester( $this->lb );
 		global $wgPropertySuggesterDeprecatedIds;
 		$this->suggester->setDeprecatedPropertyIds( $wgPropertySuggesterDeprecatedIds );
@@ -57,7 +57,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		// process response
 		$old_request = $out->getRequest();
 		$user = $this->getUser()->getName();
-		$this->resultEvaluation->processResult( $old_request,  $user );
+		$this->resultEvaluation->processResult( $old_request, $user );
 
 
 		// create new form
@@ -80,30 +80,39 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$itemId = $item->getId()->getSerialization();
 		$suggestions = $this->suggester->suggestByItem( $item, 7, 0.0 );
 		$url = $out->getRequest()->getRequestURL();
-		$description = $item->getDescription($this->language);
+		$description = $item->getDescription( $this->language );
 		$out->addHTML( Html::openElement( "form", array( "action" => $url, "method" => 'post', "id" => 'form' ) ) );
 
 		$out->addHTML( HTML::hidden( 'qid', $itemId ) );
-		$out->addHTML( HTML::hidden('result', '') );
+		$out->addHTML( HTML::hidden( 'result', '' ) );
 		$out->addElement( "br" );
 		$Itemurl = $this->getEntityTitle( $item->getId() )->getFullUrl();
-		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel $itemId ");
+		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel" );
 
-		$out->addHTML(Html::openElement("h2"));
-		$out->addHTML("Selected Random Item: " .$Itemlink ."($description)" );
-		$out->addHTML(Html::closeElement("h2"));
+		$out->addHTML( Html::openElement( "h2" ) );
+		$out->addHTML( "Selected Random Item: " . $Itemlink . " ($description)" );
+		$out->addHTML( Html::closeElement( "h2" ) );
 
 
 		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 		$claims = $item->getClaims();
+		$unique_snaks = [];
 		foreach ( $claims as $claim ) {
-			$this->addPropertyHtml( $claim->getMainSnak(), $out );
+			$snak = $claim->getMainSnak();
+			$pid = $snak->getPropertyId();
+			$unique_snaks[$pid->getSerialization()] = $snak;
+		}
+
+		foreach ( $unique_snaks as $snak ) {
+			$this->addPropertyHtml( $snak, $out );
 		}
 		$out->addHTML( Html::closeElement( 'ul' ) );
 
 		$out->addElement( 'h2', null, 'Suggestions' );
 
 		$out->addHTML( Html::openElement( "ul", array( "class" => 'suggestion_evaluation' ) ) );
+
+
 		foreach ( $suggestions as $suggestion ) {
 			$this->addSuggestionHtml( $suggestion, $out );
 		}
@@ -113,8 +122,8 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		$out->addHTML( Html::closeElement( "span" ) );
 		$out->addElement( "input", array( "name" => "property-chooser", "class" => "question" ) );
-		$out->addElement("i", array( 'class' => 'fa fa-plus', 'id' => 'addButton' ) );
-		$out->addElement("ul", array("id"=>"missing-properties"));
+		$out->addElement( "i", array( 'class' => 'fa fa-plus', 'id' => 'addButton' ) );
+		$out->addElement( "ul", array( "id" => "missing-properties" ) );
 		$out->addElement( "br" );
 
 		$out->addHTML( Html::openElement( "span", array( "class" => "description" ) ) );
@@ -155,25 +164,28 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$suggestionProbability = $suggestion->getProbability();
 		try {
 			$plabel = $this->loadEntity( $suggestionPropertyId )->getEntity()->getLabel( $this->language );
+			$description = $this->loadEntity( $suggestionPropertyId )->getEntity()->getDescription( $this->language );
+
 		} catch ( \Exception $e ) {
 			$out->addHTML( "ERROR: $suggestionPropertyId" );
 			return;
 		}
 		$pid = $suggestionPropertyId->getSerialization();
-		$wikidata_url = "http://www.wikidata.org/wiki/Property:".$suggestionPropertyId;
-		$link = Html::element( 'a', array( 'href' => $wikidata_url ), "$plabel");
+		$wikidata_url = "http://www.wikidata.org/wiki/Property:" . $suggestionPropertyId;
+		$link = Html::element( 'a', array( 'href' => $wikidata_url ), "$plabel" );
 
-		$out->addHTML(Html::openElement("li", array('data-property'=> $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ));
-		$out->addHTML(Html::openElement("span"));
-		$out->addHTML($link);
-		$out->addHTML(Html::closeElement("span"));
-		$out->addHTML(Html::openElement("span",array( "class" =>'evaluation-box' )));
+		$out->addHTML( Html::openElement( "li", array( 'data-property' => $pid, 'data-label' => $plabel, 'data-probability' => $suggestionProbability ) ) );
+		$out->addHTML( Html::openElement( "span" , array( 'class' => 'evaluation-text' ) ) );
+		$out->addHTML( $link );
+		$out->addElement( 'div', array( 'class' => 'ellipsis' ), $description );
+		$out->addHTML( Html::closeElement( "span" ) );
+		$out->addHTML( Html::openElement( "span", array( 'class' => 'evaluation-box' ) ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-smile-o evaluation-button smile_button', 'data-rating' => '1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-meh-o evaluation-button meh_button ', 'data-rating' => '0' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-frown-o evaluation-button sad_button', 'data-rating' => '-1' ) );
 		$out->addElement( 'i', array( 'class' => 'fa fa-question evaluation-button question_button selected', 'data-rating' => '-2' ) );
-		$out->addHTML( Html::closeElement('span') );
-		$out->addHTML( Html::closeElement('li') );
+		$out->addHTML( Html::closeElement( 'span' ) );
+		$out->addHTML( Html::closeElement( 'li' ) );
 	}
 
 	/**
@@ -183,10 +195,10 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	public function addPropertyHtml( Snak $snak, OutputPage $out ) {
 		$pid = $snak->getPropertyId();
 		$plabel = $this->loadEntity( $pid )->getEntity()->getLabel( $this->language );
-		$url_wikidata= "http://www.wikidata.org/wiki/Property:".$pid;
+		$url_wikidata = "http://www.wikidata.org/wiki/Property:" . $pid;
 		$url = $this->getEntityTitle( $pid )->getFullUrl();
-		$link = Html::element( 'a', array( 'href' => $url_wikidata ), "$pid $plabel");
-		$out->addHTML( Html::openElement('li', array( 'data-property' => $pid, 'data-label' => $plabel ) ) );
+		$link = Html::element( 'a', array( 'href' => $url_wikidata ), "$plabel" );
+		$out->addHTML( Html::openElement( 'li', array( 'data-property' => $pid, 'data-label' => $plabel ) ) );
 		$out->addHTML( $link );
 		$out->addHTML( Html::closeElement( 'li' ) );
 	}
@@ -252,16 +264,16 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		}
 
 		$item = null;
-		for( $i=0; $i<100; $i++ ) {
+		for ( $i = 0; $i < 100; $i++ ) {
 			$qid = $this->getRandomQid();
 			$wasEvaluated = $this->wasAlreadyEvaluatedByUser( $identifier, $qid );
 			try {
-			$item = $this->getItem( $qid );
-			} catch (\Exception $e) {
-				var_dump( $qid);
+				$item = $this->getItem( $qid );
+			} catch ( \Exception $e ) {
+				var_dump( $qid );
 			}
 			$claims = $item->getClaims();
-			if ( !$wasEvaluated && count($claims) > 0 ) {
+			if ( !$wasEvaluated && count( $claims ) > 0 ) {
 				break;
 			}
 		}
