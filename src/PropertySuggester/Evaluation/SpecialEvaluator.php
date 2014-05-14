@@ -70,7 +70,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		 <B>Green emoticon:</B> good/appropriate suggestion <br/>
 		 <B>Orange emoticon:</B> not sure if it is good or bady<br/>
 		 <B>Red emoticon:</B> bad/inappropriate suggestion<br/>
-		 <B>Question mark:</B> I have no idea what this property meANS<br/>
+		 <B>Question mark:</B> I have no idea what this property means<br/>
 		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. <br/>
 		 In the overall rating, please rate the overall quality of the suggestions (not e.g. the layout of this page)." );
 
