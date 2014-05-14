@@ -62,7 +62,7 @@ $wgResourceModules['ext.PropertySuggester'] = array(
 
 global $wgPropertySuggesterDeprecatedIds;
 $wgPropertySuggesterDeprecatedIds = array(
-	107 // ( DEPRECATED main type )
+	45, 70, 71, 74, 76, 77, 107, 168, 173, 295, 741
 );
 global $wgPropertySuggesterMinProbability;
 $wgPropertySuggesterMinProbability = 0.05;
