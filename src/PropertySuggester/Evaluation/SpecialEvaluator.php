@@ -65,12 +65,16 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
 
 		// TODO wiki-msg
-		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/> You get a random item and are able to see all its properties.
-		 In the next section, you get ranked suggestions of the entity suggester.  <br/> Please mark those as appropriate or good suggestions (green smiling emoticon) or  inapproriate
-		 /bad suggestions (red frowning emoticon). <br/>If you don't know what a property is, choose the question mark. </br> If you cannot state if it is good or bad, use the orange emoticon in the middle.
-		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. In the overall rating, please rate the overall quality of the entity suggester (not e.g. the layout of this page)." );
+		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/>
+		 You get a random item and are able to see all its properties. In the next section, you get ranked suggestions of the PropertySuggester. <br/>
+		 <B>Green emoticon:</B> good/appropriate suggestion <br/>
+		 <B>Orange emoticon:</B> not sure if it is good or bady<br/>
+		 <B>Red emoticon:</B> bad/inappropriate suggestion<br/>
+		 <B>Question mark:</B> I have no idea what this property meANS<br/>
+		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. <br/>
+		 In the overall rating, please rate the overall quality of the suggestions (not e.g. the layout of this page)." );
 
-		//$out->addWikiMsg( 'propertysuggester-intro' );
+		//$out->addWikiMsg( 'propertysuggester-intro');
 		$item = $this->getNewItemForUser( $user );
 		$itemLabel = $item->getLabel( $this->language );
 		$itemId = $item->getId()->getSerialization();
