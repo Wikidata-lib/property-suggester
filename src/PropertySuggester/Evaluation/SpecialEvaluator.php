@@ -64,7 +64,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
 
-		// TODO wiki-msg
+
 		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/>
 		 You get a random item and are able to see all its properties. In the next section, you get ranked suggestions of the PropertySuggester. <br/>
 		 <B>Green emoticon:</B> good/appropriate suggestion <br/>
@@ -96,7 +96,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		$out->addHTML( Html::openElement( 'ul', array( 'class' => 'property-entries' ) ) );
 		$claims = $item->getClaims();
-		$unique_snaks = [];
+		$unique_snaks = array();
 		foreach ( $claims as $claim ) {
 			$snak = $claim->getMainSnak();
 			$pid = $snak->getPropertyId();
