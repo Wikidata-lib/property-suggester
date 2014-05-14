@@ -6,9 +6,12 @@
     margin: 3px;
     vertical-align:middle;
 }
-
+.evaluation-box{
+    margin-left: 10%;
+    float: right;
+}
 .suggestion_evaluation {
-    width: 300px;
+    width: 432px;
 }
 
 .suggestion_evaluation .buttons {
