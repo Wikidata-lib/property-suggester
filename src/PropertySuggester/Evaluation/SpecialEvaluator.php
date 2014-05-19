@@ -56,10 +56,8 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		// process response
 		$old_request = $out->getRequest();
-		$user = $this->getUser()->getName();
-		$this->resultEvaluation->processResult( $old_request, $user );
-
-
+		$session_id = session_id();
+		$this->resultEvaluation->processResult( $old_request, $session_id );
 		// create new form
 		$this->setHeaders();
 		$out->addStyle( '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css' );
@@ -68,14 +66,14 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addHTML( "This is the Evaluation site for suggestions of the Property Suggester.<br/>
 		 You get a random item and are able to see all its properties. In the next section, you get ranked suggestions of the PropertySuggester. <br/>
 		 <B>Green emoticon:</B> good/appropriate suggestion <br/>
-		 <B>Orange emoticon:</B> not sure if it is good or bady<br/>
+		 <B>Orange emoticon:</B> not sure if it is good or bad<br/>
 		 <B>Red emoticon:</B> bad/inappropriate suggestion<br/>
 		 <B>Question mark:</B> I have no idea what this property means<br/>
 		 At the end you can enter properties which would have been also good suggestions, but are not in  the list. <br/>
 		 In the overall rating, please rate the overall quality of the suggestions (not e.g. the layout of this page)." );
 
 		//$out->addWikiMsg( 'propertysuggester-intro');
-		$item = $this->getNewItemForUser( $user );
+		$item = $this->getNewItemForUser( $session_id );
 		$itemLabel = $item->getLabel( $this->language );
 		$itemId = $item->getId()->getSerialization();
 		$suggestions = $this->suggester->suggestByItem( $item, 7, 0.0 );
@@ -90,7 +88,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel" );
 
 		$out->addHTML( Html::openElement( "h2" ) );
-		$out->addHTML( "Selected Random Item: " . $Itemlink . " ($description)" );
+		$out->addHTML( "Current properties of random Item: " . $Itemlink . " ($description)" );
 		$out->addHTML( Html::closeElement( "h2" ) );
 
 
@@ -108,7 +106,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		}
 		$out->addHTML( Html::closeElement( 'ul' ) );
 
-		$out->addElement( 'h2', null, 'Suggestions' );
+		$out->addElement( 'h2', null, 'New Suggestions for Item' );
 
 		$out->addHTML( Html::openElement( "ul", array( "class" => 'suggestion_evaluation' ) ) );
 
@@ -235,16 +233,16 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	}
 
 	/**
-	 * @param $identifier
+	 * @param $session_id
 	 * @param $qid
 	 * @return bool
 	 */
-	public function wasAlreadyEvaluatedByUser( $identifier, $qid ) {
+	public function wasAlreadyEvaluatedByUser( $session_id, $qid ) {
 		$dbr = $this->lb->getConnection( DB_SLAVE );
 		$entityResults = $dbr->select(
 			'wbs_evaluations',
 			array( 'entity' ),
-			array( "session_id" => $identifier, "entity" => $qid )
+			array( "session_id" => $session_id, "entity" => $qid )
 		);
 		$this->lb->reuseConnection( $dbr );
 		$numberOfRows = $entityResults->numRows();
@@ -252,10 +250,10 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 	}
 
 	/**
-	 * @param $identifier
+	 * @param $session_id
 	 * @return Item
 	 */
-	public function getNewItemForUser( $identifier ) {
+	public function getNewItemForUser( $session_id ) {
 		$qid = $this->getRequest()->getText( "next-id" );
 
 		if ( $qid ) {
@@ -266,7 +264,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$item = null;
 		for ( $i = 0; $i < 100; $i++ ) {
 			$qid = $this->getRandomQid();
-			$wasEvaluated = $this->wasAlreadyEvaluatedByUser( $identifier, $qid );
+			$wasEvaluated = $this->wasAlreadyEvaluatedByUser( $session_id, $qid );
 			try {
 				$item = $this->getItem( $qid );
 			} catch ( \Exception $e ) {
