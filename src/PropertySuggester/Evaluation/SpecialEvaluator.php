@@ -54,10 +54,14 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out = $this->getContext()->getOutput();
 		$out->addModules( 'ext.PropertySuggester' );
 
+		if ( session_id() == '' ) {
+			wfSetupSession();
+		}
 		// process response
 		$old_request = $out->getRequest();
 		if ($this->getUser()->isAnon()) {
 			$session_id = session_id();
+
 		} else {
 			$session_id = $this->getUser()->getName();
 		}
