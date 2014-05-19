@@ -56,7 +56,12 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 
 		// process response
 		$old_request = $out->getRequest();
-		$session_id = session_id();
+		if ($this->getUser()->isAnon()) {
+			$session_id = session_id();
+		} else {
+			$session_id = $this->getUser()->getName();
+		}
+
 		$this->resultEvaluation->processResult( $old_request, $session_id );
 		// create new form
 		$this->setHeaders();
