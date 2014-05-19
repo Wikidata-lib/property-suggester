@@ -276,7 +276,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 				var_dump( $qid );
 			}
 			$claims = $item->getClaims();
-			if ( !$wasEvaluated && count( $claims ) > 0 ) {
+			if ( !$wasEvaluated && count( $claims ) > 2 ) {
 				break;
 			}
 		}
