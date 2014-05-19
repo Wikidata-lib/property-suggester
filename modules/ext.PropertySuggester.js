@@ -34,7 +34,8 @@
 			}
 		});
 		$("#skip-button").on("click", function() {
-			window.location.reload(false);
+			//window.location.reload(true);
+			window.location = window.location.href;
 		});
 		$(".evaluation-button").on("click", function () {
 			var $this = $(this);
