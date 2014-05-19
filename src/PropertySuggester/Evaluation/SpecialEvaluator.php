@@ -91,7 +91,7 @@ class SpecialEvaluator extends SpecialWikibaseRepoPage
 		$out->addElement( "br" );
 		$Itemurl = $this->getEntityTitle( $item->getId() )->getFullUrl();
 		$Itemlink = Html::element( 'a', array( 'href' => $Itemurl ), "$itemLabel" );
-
+		$out->addElement( "input", array( "value" => "Skip this item", "id" => "skip-button", "type" => "button" ) );
 		$out->addHTML( Html::openElement( "h2" ) );
 		$out->addHTML( "Current properties of random Item: " . $Itemlink . " ($description)" );
 		$out->addHTML( Html::closeElement( "h2" ) );

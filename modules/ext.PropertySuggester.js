@@ -33,7 +33,9 @@
 				propertyChooser.val("");
 			}
 		});
-
+		$("#skip-button").on("click", function() {
+			window.location.reload(false);
+		});
 		$(".evaluation-button").on("click", function () {
 			var $this = $(this);
 			$this.siblings(".evaluation-button").removeClass("selected");
