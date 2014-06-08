@@ -35,6 +35,16 @@ class ImportContext {
 	private $lb = null;
 
 	/**
+	 * @var int
+	 */
+	private $batchSize;
+
+	/**
+	 * @var boolean
+	 */
+	private $quiet;
+
+	/**
 	 * @return string
 	 */
 	public function getCsvDelimiter() {
@@ -88,6 +98,35 @@ class ImportContext {
 	 */
 	public function setCsvFilePath( $fullPath ) {
 		$this->csvFilePath = $fullPath;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getBatchSize() {
+		return $this->batchSize;
+	}
+
+	/**
+	 * @param int $batchSize
+	 */
+	public function setBatchSize( $batchSize ) {
+		$this->batchSize = $batchSize;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isQuiet() {
+		return $this->quiet;
+	}
+
+	/**
+	 * @param boolean $quiet
+	 */
+	public function setQuiet( $quiet ) {
+		$this->quiet = $quiet;
 	}
 
 }

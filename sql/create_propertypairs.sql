@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS /*_*/wbs_propertypairs (
-  row_id            INT unsigned    NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  row_id            BIGINT unsigned    NOT NULL PRIMARY KEY AUTO_INCREMENT,
   pid1              INT unsigned    NOT NULL,
   qid1              INT unsigned    NULL,
   pid2              INT unsigned    NOT NULL,
@@ -10,8 +10,4 @@ CREATE TABLE IF NOT EXISTS /*_*/wbs_propertypairs (
 ) /*$wgDBTableOptions*/;
 
 
-CREATE INDEX /*i*/propertypairs_pid1_pid2_qid1 ON /*_*/wbs_propertypairs (pid1, qid1, pid2, context);
-
-CREATE INDEX /*i*/propertypairs_pid1_pid2 ON /*_*/wbs_propertypairs (pid1, pid2, context);
-
-CREATE INDEX /*i*/propertypairs_pid1_qid1 ON /*_*/wbs_propertypairs (pid1, qid1, context);
+CREATE INDEX /*i*/propertypairs_pid1_pid2_qid1_context ON /*_*/wbs_propertypairs (pid1, qid1, pid2, context);
