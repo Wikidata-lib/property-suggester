@@ -40,9 +40,13 @@ generate this data from a wikidata dump.
 ### Configuration
 
 * $wgPropertySuggesterMinProbability - a float that sets a minimum threshold for suggestions (default 0.05)
-* $wgPropertySuggesterDeprecatedIds - a list of ints that blacklist suggestions
+* $wgPropertySuggesterDeprecatedIds - a list of ints that blacklist properties
+* $wgPropertySuggesterInitialSuggestions - a list of ints that will be suggested when no statements exist
 
 ## Release notes
+
+### 1.1 (soon)
+* Suggest initial properties
 
 ### 1.0 (2014-07-01)
 
