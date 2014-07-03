@@ -6,9 +6,9 @@ statements to an item.
 [![Build Status](https://travis-ci.org/Wikidata-lib/PropertySuggester.svg?branch=master)](https://travis-ci.org/Wikidata-lib/PropertySuggester)
 [![Coverage Status](https://coveralls.io/repos/Wikidata-lib/PropertySuggester/badge.png?branch=master)](https://coveralls.io/r/Wikidata-lib/PropertySuggester?branch=master)
 
-On [Packagist](https://packagist.org/packages/propertysuggester/propertysuggester):
-[![Latest Stable Version](https://poser.pugx.org/propertysuggester/propertysuggester/v/stable.png)](https://packagist.org/packages/propertysuggester/propertysuggester)
-[![License](https://poser.pugx.org/propertysuggester/propertysuggester/license.png)](https://packagist.org/packages/propertysuggester/propertysuggester)
+On [Packagist](https://packagist.org/packages/propertysuggester/property-suggester):
+[![Latest Stable Version](https://poser.pugx.org/propertysuggester/property-suggester/v/stable.png)](https://packagist.org/packages/propertysuggester/propertysuggester)
+[![License](https://poser.pugx.org/propertysuggester/property-suggester/license.png)](https://packagist.org/packages/propertysuggester/propertysuggester)
 
 ## Installation
 
@@ -34,5 +34,16 @@ generate this data from a wikidata dump.
 
 * run ```composer dump-autoload``` in the extension folder (if installed without composer)
 * add ```require_once "$IP/extensions/PropertySuggester/PropertySuggester.php";``` to your localsettings
-* run ```maintenance/update.php``` to create the neccessary table
+* run ```maintenance/update.php``` to create the necessary table
 * follow the readme of PropertySuggester-Python to generate and load suggestion data
+
+### Configuration
+
+* $wgPropertySuggesterMinProbability - a float that sets a minimum threshold for suggestions (default 0.05)
+* $wgPropertySuggesterDeprecatedIds - a list of ints that blacklist suggestions
+
+## Release notes
+
+### 1.0 (2014-07-01)
+
+* Provide Property-Suggestions based on correlations to other properties in the item

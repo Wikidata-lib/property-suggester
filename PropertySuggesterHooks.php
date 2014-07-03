@@ -1,11 +1,12 @@
 <?php
 
-
+use Wikibase\NamespaceUtils;
 
 final class PropertySuggesterHooks {
+
 	/**
 	 * Handler for the BeforePageDisplay hook, injects special behaviour
-	 * for PropertySuggestions in the EntitySuggester
+	 * for PropertySuggestions in the EntitySuggester (if page is in EntityNamespace)
 	 *
 	 *
 	 * @param OutputPage $out
@@ -16,6 +17,12 @@ final class PropertySuggesterHooks {
 		if ( $out->getRequest()->getCheck( 'nosuggestions' ) ) {
 			return true;
 		}
+		$itemNs = NamespaceUtils::getEntityNamespace( CONTENT_MODEL_WIKIBASE_ITEM );
+		$namespace = $out->getTitle()->getNamespace();
+		if ( $namespace != $itemNs ) {
+			return true;
+		}
+
 		$out->addModules( 'ext.PropertySuggester.EntitySelector' );
 		return true;
 	}
