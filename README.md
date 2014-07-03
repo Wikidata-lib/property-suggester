@@ -45,8 +45,13 @@ generate this data from a wikidata dump.
 
 ## Release notes
 
-### 1.1 (soon)
+### 1.2 (later)
+
 * Suggest initial properties
+
+### 1.1 (soon)
+
+* Suggest properties for qualifiers and references based on the property of the mainsnak
 
 ### 1.0 (2014-07-01)
 
