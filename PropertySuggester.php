@@ -55,5 +55,10 @@ global $wgPropertySuggesterDeprecatedIds;
 $wgPropertySuggesterDeprecatedIds = array(
 	107 // ( DEPRECATED main type )
 );
+global $wgPropertySuggesterInitialSuggestions;
+$wgPropertySuggesterInitialSuggestions = array(
+	31, // instance of
+	279 // subclass of
+);
 global $wgPropertySuggesterMinProbability;
 $wgPropertySuggesterMinProbability = 0.05;

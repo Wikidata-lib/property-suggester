@@ -51,14 +51,17 @@ class GetSuggestions extends ApiBase {
 		parent::__construct( $main, $name, $prefix );
 		global $wgPropertySuggesterDeprecatedIds;
 		global $wgPropertySuggesterMinProbability;
+		global $wgPropertySuggesterInitialSuggestions;
 
 		$store = WikibaseRepo::getDefaultInstance()->getStore();
 		$this->termIndex = $store->getTermIndex();
 		$this->entityLookup = $store->getEntityLookup();
 		$this->entityTitleLookup = WikibaseRepo::getDefaultInstance()->getEntityTitleLookup();
 
-		$this->suggester = new SimpleSuggester( wfGetLB() );
-		$this->suggester->setDeprecatedPropertyIds( $wgPropertySuggesterDeprecatedIds );
+		$suggester = new SimpleSuggester( wfGetLB() );
+		$suggester->setDeprecatedPropertyIds( $wgPropertySuggesterDeprecatedIds );
+		$suggester->setInitialSuggestions( $wgPropertySuggesterInitialSuggestions );
+		$this->suggester = $suggester;
 
 		$this->paramsParser = new SuggesterParamsParser( 500, $wgPropertySuggesterMinProbability );
 	}
