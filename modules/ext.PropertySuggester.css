@@ -1,0 +1,92 @@
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 470px;
+}
+
+.evaluation-text {
+    float: left;
+}
+
+.evaluation-button {
+    font-size: 200%;
+    color: #d3d3d3;
+    cursor: pointer;
+    margin: 3px;
+    vertical-align: middle;
+}
+.evaluation-box{
+    margin-top: 5px;
+    float: right;
+}
+.suggestion_evaluation {
+    width: 600px;
+    padding-bottom: 1%;
+}
+
+.suggestion_evaluation .buttons {
+    float: right;
+}
+
+.suggestion_evaluation li {
+    clear: both;
+    height: 35px;
+}
+.suggestion_evaluation li span {
+    vertical-align: middle;
+}
+
+.smile_button {
+}
+
+.smile_button.selected {
+    color: green;
+}
+.smile_button:hover {
+    color: green;
+}
+
+.sad_button {
+}
+
+.sad_button.selected {
+    color: red;
+}
+.sad_button:hover {
+    color: red;
+}
+
+.question_button.selected {
+    color: blue;
+}
+.question_button:hover {
+    color: blue;
+}
+
+.meh_button.selected{
+    color: orange;
+}
+.meh_button:hover{
+    color: orange;
+}
+
+.question{
+    width: 200px;
+    max-width: 200px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+
+}
+
+.description {
+    float: left;
+    min-width: 236px;
+}
+.question.textfield{
+    resize: none;
+    max-width: 200px;
+    height: 100px;
+}
