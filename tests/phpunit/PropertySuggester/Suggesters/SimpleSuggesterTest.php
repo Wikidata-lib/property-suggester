@@ -48,7 +48,7 @@ class SimpleSuggesterTest extends MediaWikiTestCase {
 
 		$this->tablesUsed[] = 'wbs_propertypairs';
 		$lb = new LoadBalancerSingle( array("connection" => $this->db ) );
-		$this->suggester = new SimpleSuggester( $lb );
+		$this->suggester = new SimpleSuggester( $lb, wfGetMainCache(), 'cacheprefix', 3600 );
 	}
 
 	public function testDatabaseHasRows() {
@@ -68,8 +68,7 @@ class SimpleSuggesterTest extends MediaWikiTestCase {
 	}
 
 	public function testSuggestByItem() {
-		$item = Item::newEmpty();
-		$item->setId( new ItemId( 'Q42' ) );
+		$item = new Item( new ItemId( 'Q42' ) );
 		$statement = new Statement( new Claim( new PropertySomeValueSnak( new PropertyId( 'P1' ) ) ) );
 		$statement->setGuid( 'claim0' );
 		$item->addClaim( $statement );
@@ -78,6 +77,11 @@ class SimpleSuggesterTest extends MediaWikiTestCase {
 
 		$this->assertEquals( new PropertyId( 'p2' ), $res[0]->getPropertyId() );
 		$this->assertEquals( new PropertyId( 'p3' ), $res[1]->getPropertyId() );
+	}
+
+	public function testSuggestByItem_emptyItem() {
+		$res = $this->suggester->suggestByItem( new Item(), 100, 0.0, 'item' );
+		$this->assertCount( 4, $res );
 	}
 
 	public function testDeprecatedProperties() {
@@ -100,14 +104,14 @@ class SimpleSuggesterTest extends MediaWikiTestCase {
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testInvalidLimit() {
-		$this->suggester->suggestByPropertyIds( array(), '10', 0.01, 'item' );
+		$this->suggester->suggestByPropertyIds( array( new PropertyId( 'p1' ) ), '10', 0.01, 'item' );
 	}
 
 	/**
 	 * @expectedException InvalidArgumentException
 	 */
 	public function testInvalidMinProbability() {
-		$this->suggester->suggestByPropertyIds( array(), 10, '0.01', 'item' );
+		$this->suggester->suggestByPropertyIds( array( new PropertyId( 'p1' ) ), 10, '0.01', 'item' );
 	}
 
 }
