@@ -1,0 +1,43 @@
+{
+	"preset": "wikimedia",
+
+	"disallowDanglingUnderscores": null,
+	"requireMultipleVarDecl": null,
+	"requireSpacesInsideBrackets": null,
+	"requireVarDeclFirst": null,
+	"validateQuoteMarks": null,
+
+	"jsDoc": {
+		// what we don't yet follow is commented out
+		"checkAnnotations": {
+			"preset": "jsduck5",
+			"extra": {
+				"see": "some"
+			}
+		},
+		"checkParamNames": true,
+		"requireParamTypes": true,
+		"checkRedundantParams": true,
+		//"checkReturnTypes": true,
+		"checkRedundantReturns": true,
+		"requireReturnTypes": true,
+		"checkTypes": "strictNativeCase",
+		"checkRedundantAccess": true
+		//"requireNewlineAfterDescription": true
+	},
+
+	// not required for catch, function, if
+	"requireSpaceAfterKeywords": [
+		"do",
+		"for",
+		"else",
+		"switch",
+		"case",
+		"try",
+		"void",
+		"while",
+		"with",
+		"return",
+		"typeof"
+	]
+}
