@@ -74,7 +74,7 @@ class SimpleSuggester implements SuggesterEngine {
 
 	/**
 	 * @param int[] $propertyIds
-	 * @param string[] $idTuples
+	 * @param array[] $idTuples Array of ( int property ID, int item ID ) tuples
 	 * @param int $limit
 	 * @param float $minProbability
 	 * @param string $context
@@ -96,11 +96,17 @@ class SimpleSuggester implements SuggesterEngine {
 		$count = count( $propertyIds );
 
 		$dbr = $this->lb->getConnection( DB_REPLICA );
-		if ( empty( $idTuples ) ){
+
+		$tupleConditions = [];
+		foreach ( $idTuples as $tuple ) {
+			$tupleConditions[] = $this->buildTupleCondition( $tuple[0], $tuple[1] );
+		}
+
+		if ( empty( $tupleConditions ) ){
 			$condition = 'pid1 IN (' . $dbr->makeList( $propertyIds ) . ')';
 		}
 		else{
-			$condition = $dbr->makeList( $idTuples, LIST_OR );
+			$condition = $dbr->makeList( $tupleConditions, LIST_OR );
 		}
 		$res = $dbr->select(
 			'wbs_propertypairs',
@@ -158,7 +164,7 @@ class SimpleSuggester implements SuggesterEngine {
 			$ids[] = $numericPropertyId;
 
 			if ( !isset( $this->classifyingPropertyIds[$numericPropertyId] ) ) {
-				$idTuples[] = $this->buildTupleCondition( $numericPropertyId, '0' );
+				$idTuples[] = [ $numericPropertyId, 0 ];
 			} elseif ( $mainSnak instanceof PropertyValueSnak ) {
 				$dataValue = $mainSnak->getDataValue();
 
@@ -170,7 +176,7 @@ class SimpleSuggester implements SuggesterEngine {
 				}
 
 				$numericEntityId = $dataValue->getEntityId()->getNumericId();
-				$idTuples[] = $this->buildTupleCondition( $numericPropertyId, $numericEntityId );
+				$idTuples[] = [ $numericPropertyId, $numericEntityId ];
 			}
 		}
 
