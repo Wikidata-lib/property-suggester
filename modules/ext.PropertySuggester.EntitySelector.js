@@ -136,15 +136,15 @@
 		 * @return {string|null}
 		 */
 		_getPropertyContext: function() {
-			if ( this._isInNewStatementView() ) {
-				return 'item';
-			} else if ( this._isQualifier() ) {
+			if ( this._isQualifier() ) {
 				return 'qualifier';
 			} else if ( this._isReference() ) {
 				return 'reference';
-			} else {
-				return null;
+			} else if ( this._isInNewStatementView() ) {
+				return 'item';
 			}
+
+			return null;
 		},
 
 		/**
