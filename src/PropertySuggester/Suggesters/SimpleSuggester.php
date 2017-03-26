@@ -172,7 +172,7 @@ class SimpleSuggester implements SuggesterEngine {
 
 				$entityId = $dataValue->getEntityId();
 
-				if ( !$entityId instanceof Int32EntityId ) {
+				if ( !( $entityId instanceof Int32EntityId ) ) {
 					throw new LogicException(
 						$entityId->getSerialization() . ' expected to be Int32EntityId'
 					);
