@@ -103,7 +103,7 @@ class SimpleSuggester implements SuggesterEngine {
 			$tupleConditions[] = $this->buildTupleCondition( $tuple[0], $tuple[1] );
 		}
 
-		if ( empty( $tupleConditions ) ){
+		if ( empty( $tupleConditions ) ) {
 			$condition = 'pid1 IN (' . $dbr->makeList( $propertyIds ) . ')';
 		}
 		else{
@@ -199,7 +199,7 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @param int $qid
 	 * @return string
 	 */
-	private function buildTupleCondition( $pid, $qid ){
+	private function buildTupleCondition( $pid, $qid ) {
 		$tuple = '(pid1 = '. ( int )$pid .' AND qid1 = '. ( int )$qid .')';
 		return $tuple;
 	}
