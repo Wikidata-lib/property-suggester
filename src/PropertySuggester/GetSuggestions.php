@@ -6,6 +6,7 @@ use ApiBase;
 use ApiMain;
 use ApiResult;
 use DerivativeRequest;
+use InvalidArgumentException;
 use PropertySuggester\Suggesters\SimpleSuggester;
 use PropertySuggester\Suggesters\SuggesterEngine;
 use Wikibase\DataModel\Entity\Property;
@@ -88,12 +89,17 @@ class GetSuggestions extends ApiBase {
 		);
 
 		if ( $params->entity !== null ) {
-			$suggestions = $suggestionGenerator->generateSuggestionsByItem(
-				$params->entity,
-				$params->suggesterLimit,
-				$params->minProbability,
-				$params->context
-			);
+			try {
+				$suggestions = $suggestionGenerator->generateSuggestionsByItem(
+					$params->entity,
+					$params->suggesterLimit,
+					$params->minProbability,
+					$params->context
+				);
+			} catch ( InvalidArgumentException $ex ) {
+				$id = $params->entity;
+				$this->dieWithError( "Invalid id: $id", 'no-such-entity', [ 'id' => $id ] );
+			}
 		} else {
 			$suggestions = $suggestionGenerator->generateSuggestionsByPropertyList(
 				$params->properties,
