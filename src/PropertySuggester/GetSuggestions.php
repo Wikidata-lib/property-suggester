@@ -97,8 +97,7 @@ class GetSuggestions extends ApiBase {
 					$params->context
 				);
 			} catch ( InvalidArgumentException $ex ) {
-				$id = $params->entity;
-				$this->dieWithError( "Invalid id: $id", 'no-such-entity', [ 'id' => $id ] );
+				$this->dieWithError( $ex->getMessage() );
 			}
 		} else {
 			$suggestions = $suggestionGenerator->generateSuggestionsByPropertyList(
