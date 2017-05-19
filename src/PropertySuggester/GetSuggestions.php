@@ -97,7 +97,7 @@ class GetSuggestions extends ApiBase {
 					$params->context
 				);
 			} catch ( InvalidArgumentException $ex ) {
-				$this->dieWithError( $ex->getMessage() );
+				$this->dieWithException( $ex );
 			}
 		} else {
 			$suggestions = $suggestionGenerator->generateSuggestionsByPropertyList(
