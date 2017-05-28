@@ -93,8 +93,29 @@ class SimpleSuggester implements SuggesterEngine {
 			return $this->initialSuggestions;
 		}
 
-		$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
-		$count = count( $propertyIds );
+		if(isset($_GET['all_suggestions']))
+	   	{
+			if($_GET['all_suggestions'] == "true")
+			{
+				$excludedIds = [];
+				array_push($excludedIds, $propertyIds[0]); //only exclude classifying properties (i.e. P31 and P279) from the suggestion result
+				$excludedIds = array_merge($excludedIds, $this->deprecatedPropertyIds);
+				$count = 1;
+				$probability_query = "probability";
+			}
+			else
+			{
+				$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
+				$count = count( $propertyIds );		
+				$probability_query = "sum(probability)";
+			}
+		}
+		else
+		{
+			$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
+			$count = count( $propertyIds );		
+			$probability_query = "sum(probability)";
+		}
 
 		$dbr = $this->lb->getConnection( DB_REPLICA );
 
@@ -112,7 +133,7 @@ class SimpleSuggester implements SuggesterEngine {
 			'wbs_propertypairs',
 			[
 				'pid' => 'pid2',
-				'prob' => "sum(probability)/$count",
+				'prob' => "$probability_query/$count",
 			],
 			[
 				$condition,
