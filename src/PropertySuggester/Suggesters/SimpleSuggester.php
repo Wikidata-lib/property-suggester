@@ -23,17 +23,17 @@ class SimpleSuggester implements SuggesterEngine {
 	/**
 	 * @var int[]
 	 */
-	private $deprecatedPropertyIds = array();
+	private $deprecatedPropertyIds = [];
 
 	/**
 	 * @var array Numeric property ids as keys, values are meaningless.
 	 */
-	private $classifyingPropertyIds = array();
+	private $classifyingPropertyIds = [];
 
 	/**
 	 * @var Suggestion[]
 	 */
-	private $initialSuggestions = array();
+	private $initialSuggestions = [];
 
 	/**
 	 * @var LoadBalancer
@@ -65,7 +65,7 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @param int[] $initialSuggestionIds
 	 */
 	public function setInitialSuggestions( array $initialSuggestionIds ) {
-		$suggestions = array();
+		$suggestions = [];
 		foreach ( $initialSuggestionIds as $id ) {
 			$suggestions[] = new Suggestion( PropertyId::newFromNumber( $id ), 1.0 );
 		}
@@ -92,72 +92,46 @@ class SimpleSuggester implements SuggesterEngine {
 		if ( !$propertyIds ) {
 			return $this->initialSuggestions;
 		}
-		
-		
-	   if(isset($_GET['all_suggestions']))
-	   {
-			if($_GET['all_suggestions'] == "true")
-			{
-				$excludedIds = [];
-				array_push($excludedIds, $propertyIds[0]); //only exclude classifying properties (i.e. P31 and P279) from the suggestion result
-				$excludedIds = array_merge($excludedIds, $this->deprecatedPropertyIds);
-				$count = 1;
-				$probability_query = "probability";
-			}
-			else
-			{
-				$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
-				$count = count( $propertyIds );		
-				$probability_query = "sum(probability)";
-			}
-		}
-		else
-		{
-			$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
-			$count = count( $propertyIds );		
-			$probability_query = "sum(probability)";
-		}
-	
-		
+
+		$excludedIds = array_merge( $propertyIds, $this->deprecatedPropertyIds );
+		$count = count( $propertyIds );
+
 		$dbr = $this->lb->getConnection( DB_REPLICA );
 
 		$tupleConditions = [];
 		foreach ( $idTuples as $tuple ) {
 			$tupleConditions[] = $this->buildTupleCondition( $tuple[0], $tuple[1] );
-			
 		}
-		
-		
+
 		if ( empty( $tupleConditions ) ) {
 			$condition = 'pid1 IN (' . $dbr->makeList( $propertyIds ) . ')';
-			
 		} else {
 			$condition = $dbr->makeList( $tupleConditions, LIST_OR );
 		}
-		
-		
 		$res = $dbr->select(
 			'wbs_propertypairs',
-			array( 'pid' => 'pid2', 'prob' => "$probability_query/$count" ),
-			array( $condition,
-				   'pid2 NOT IN (' . $dbr->makeList( $excludedIds ) . ')',
-				   'context' => $context ),
+			[
+				'pid' => 'pid2',
+				'prob' => "sum(probability)/$count",
+			],
+			[
+				$condition,
+				'pid2 NOT IN (' . $dbr->makeList( $excludedIds ) . ')',
+				'context' => $context,
+			],
 			__METHOD__,
-			array(
-				'GROUP BY' => 'pid2', 
-				'ORDER BY' => 'prob DESC', 
-				'LIMIT'    => $limit, 
-				'HAVING'   => 'prob > ' . floatval( $minProbability ) 
-				
-				)
-			);
-		
-		
-		
+			[
+				'GROUP BY' => 'pid2',
+				'ORDER BY' => 'prob DESC',
+				'LIMIT'    => $limit,
+				'HAVING'   => 'prob > ' . floatval( $minProbability )
+			]
+		);
+		$this->lb->reuseConnection( $dbr );
+
 		return $this->buildResult( $res );
 	}
-	
-	
+
 	/**
 	 * @see SuggesterEngine::suggestByPropertyIds
 	 *
@@ -172,8 +146,8 @@ class SimpleSuggester implements SuggesterEngine {
 			return $propertyId->getNumericId();
 		}, $propertyIds );
 
-		return $this->getSuggestions( $numericIds, array(), $limit, $minProbability, $context );
-		}
+		return $this->getSuggestions( $numericIds, [], $limit, $minProbability, $context );
+	}
 
 	/**
 	 * @see SuggesterEngine::suggestByEntity
@@ -186,12 +160,11 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @return Suggestion[]
 	 */
 	public function suggestByItem( Item $item, $limit, $minProbability, $context ) {
-		$ids = array();
-		$idTuples = array();
+		$ids = [];
+		$idTuples = [];
 
 		foreach ( $item->getStatements()->toArray() as $statement ) {
 			$mainSnak = $statement->getMainSnak();
-			
 			$numericPropertyId = $mainSnak->getPropertyId()->getNumericId();
 			$ids[] = $numericPropertyId;
 
@@ -219,13 +192,11 @@ class SimpleSuggester implements SuggesterEngine {
 
 				$numericEntityId = $entityId->getNumericId();
 				$idTuples[] = [ $numericPropertyId, $numericEntityId ];
-				
 			}
 		}
 
 		return $this->getSuggestions( $ids, $idTuples, $limit, $minProbability, $context );
 	}
-	
 
 	/**
 	 * @param int $pid
@@ -243,14 +214,12 @@ class SimpleSuggester implements SuggesterEngine {
 	 * @return Suggestion[]
 	 */
 	private function buildResult( ResultWrapper $res ) {
-		$resultArray = array();
+		$resultArray = [];
 		foreach ( $res as $row ) {
 			$pid = PropertyId::newFromNumber( $row->pid );
 			$suggestion = new Suggestion( $pid, $row->prob );
 			$resultArray[] = $suggestion;
-			
 		}
-	
 		return $resultArray;
 	}
 
