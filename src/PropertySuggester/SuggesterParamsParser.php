@@ -77,7 +77,11 @@ class SuggesterParamsParser {
 			$result->suggesterLimit = $result->resultSize;
 			$result->minProbability = $this->defaultMinProbability;
 		}
-
+		
+		if($params['all_suggestions'] == "true")
+		{
+			$result->minProbability = 0.0;
+		}
 		return $result;
 	}
 
