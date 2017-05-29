@@ -211,6 +211,11 @@ class GetSuggestions extends ApiBase {
 				ApiBase::PARAM_TYPE => 'string',
 				ApiBase::PARAM_DFLT => '',
 			],
+			'all_suggestions' => [
+				ApiBase::PARAM_TYPE => 'string'
+				
+			]
+			
 		];
 	}
 
