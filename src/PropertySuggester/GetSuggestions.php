@@ -18,7 +18,7 @@ use Wikibase\TermIndex;
 /**
  * API module to get property suggestions.
  *
- * @licence GNU GPL v2+
+ * @license GNU GPL v2+
  */
 class GetSuggestions extends ApiBase {
 

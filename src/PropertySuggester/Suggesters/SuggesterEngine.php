@@ -8,7 +8,7 @@ use Wikibase\DataModel\Entity\PropertyId;
 /**
  * interface for (Property-)Suggester
  *
- * @licence GNU GPL v2+
+ * @license GNU GPL v2+
  */
 interface SuggesterEngine {
 

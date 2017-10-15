@@ -11,7 +11,7 @@ use Wikimedia\Rdbms\Database;
  * are supported by the dbms.
  *
  * @author BP2013N2
- * @licence GNU GPL v2+
+ * @license GNU GPL v2+
  */
 class BasicImporter implements Importer {
 
@@ -47,9 +47,13 @@ class BasicImporter implements Importer {
 		$i = 0;
 		$header = fgetcsv( $fileHandle, 0, $importContext->getCsvDelimiter() ); //this is to get the csv-header
 		$expectedHeader = [ 'pid1', 'qid1', 'pid2', 'count', 'probability', 'context' ];
+
 		if ( $header != $expectedHeader ) {
-			throw new UnexpectedValueException( "provided csv-file does not match the expected format:\n" . join( ',', $expectedHeader ) );
+			throw new UnexpectedValueException(
+				"provided csv-file does not match the expected format:\n" . join( ',', $expectedHeader )
+			);
 		}
+
 		while ( true ) {
 			$data = fgetcsv( $fileHandle, 0, $importContext->getCsvDelimiter() );
 
